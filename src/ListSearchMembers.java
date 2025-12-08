@@ -1,178 +1,147 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
-/**
- *
- * @author Ganesh Sharma
- */
-//import the packages for using the classes in them into the program
-
 import javax.swing.*;
 import javax.swing.table.TableColumn;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.print.PrinterException;
 import java.awt.print.PrinterJob;
 import java.sql.SQLException;
 
-/**
- *A public class
- */
 public class ListSearchMembers extends JInternalFrame {
-	/***************************************************************************
-	 ***      declaration of the private variables used in the program       ***
-	 ***************************************************************************/
 
-	//for creating the North Panel
-	private JPanel northPanel = new JPanel();
-	//for creating the Center Panel
-	private JPanel centerPanel = new JPanel();
-	//for creating the label
-	private JLabel label = new JLabel("THE LIST FOR THE SEARCHED MEMBERS");
-	//for creating the button
-	private JButton printButton;
-	//for creating the table
-	private JTable table;
-	//for creating the TableColumn
-	private TableColumn column = null;
-	//for creating the JScrollPane
-	private JScrollPane scrollPane;
+    private JPanel northPanel = new JPanel();
+    private JPanel centerPanel = new JPanel();
+    private JLabel label = new JLabel("THE LIST FOR THE SEARCHED MEMBERS");
 
-	//for creating an object for the ResultSetTableModel class
-	private ResultSetTableModel tableModel;
+    private JButton printButton;
+    private JTable table;
+    private JScrollPane scrollPane;
+    private TableColumn column;
 
-	//constructor of listSearchMembers
-	public ListSearchMembers(String query) {
-		//for setting the title for the internal frame
-		super("Searched Members", false, true, false, true);
-		//for setting the icon
-		setFrameIcon(new ImageIcon(ClassLoader.getSystemResource("images/List16.gif")));
-		//for getting the graphical user interface components display area
-		Container cp = getContentPane();
+    private ResultSetTableModel tableModel;
 
-		/***********************************************************************
-		 *for setting the required information for the ResultSetTableModel class*
-		 ************************************************************************/
-		/*final String JDBC_DRIVER = "sun.jdbc.odbc.JdbcOdbcDriver";
-		final String DATABASE_URL = "jdbc:odbc:JLibrary";*/
-        final String JDBC_DRIVER = "org.gjt.mm.mysql.Driver";
-		//final String DATABASE_URL = "jdbc:odbc:JLibrary";
-        final String DATABASE_URL = "jdbc:mysql://localhost:3306/Library";
-        final String USER_NAME ="root";
-        final String PASSWORD ="nielit";
-		final String DEFAULT_QUERY = query;
+    private final String DEFAULT_QUERY;
 
-		//for bassing the required information to the ResultSetTableModel object
-		try {
-			tableModel = new ResultSetTableModel(JDBC_DRIVER, DATABASE_URL,USER_NAME,PASSWORD, DEFAULT_QUERY);
-			//for setting the Query
-			try {
-				tableModel.setQuery(DEFAULT_QUERY);
-			}
-			catch (SQLException sqlException) {
-			}
-		}
-		catch (ClassNotFoundException classNotFound) {
-			System.out.println("ListSearchMembers.java\n" + classNotFound.toString());
-		}
-		catch (SQLException sqlException) {
-		}
-		//for setting the table with the information
-		table = new JTable(tableModel);
-		//for setting the size for the table
-		table.setPreferredScrollableViewportSize(new Dimension(700, 200));
-		//for setting the font
-		table.setFont(new Font("Tahoma", Font.PLAIN, 12));
-		//for setting the scrollpane to the table
-		scrollPane = new JScrollPane(table);
+    private static final String JDBC_DRIVER = "org.gjt.mm.mysql.Driver";
+    private static final String DATABASE_URL = "jdbc:mysql://localhost:3306/Library";
+    private static final String USER_NAME = "root";
+    private static final String PASSWORD = "nielit";
 
-		//for setting the size for the table columns
-		for (int i = 0; i < 6; i++) {
-			column = table.getColumnModel().getColumn(i);
-			if (i == 0) //MemberID
-				column.setPreferredWidth(30);
-			if (i == 1) //ID
-				column.setPreferredWidth(20);
-			if (i == 2) //Name
-				column.setPreferredWidth(150);
-			if (i == 3) //E-MAIL
-				column.setPreferredWidth(120);
-			if (i == 4) //Major
-				column.setPreferredWidth(20);
-			if (i == 5) //Expired
-				column.setPreferredWidth(40);
-		}
-		//for setting the font to the label
-		label.setFont(new Font("Tahoma", Font.BOLD, 14));
-		//for setting the layout to the panel
-		northPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
-		//for adding the label to the panel
-		northPanel.add(label);
-		//for adding the panel to the container
-		cp.add("North", northPanel);
 
-		//for setting the layout to the panel
-		centerPanel.setLayout(new BorderLayout());
-		//for creating an image for the button
-		ImageIcon printIcon = new ImageIcon(ClassLoader.getSystemResource("images/Print16.gif"));
-		//for adding the button to the panel
-		printButton = new JButton("print the members", printIcon);
-		//for setting the tip text
-		printButton.setToolTipText("Print");
-		//for setting the font to the button
-		printButton.setFont(new Font("Tahoma", Font.PLAIN, 12));
-		//for adding the button to the panel
-		centerPanel.add(printButton, BorderLayout.NORTH);
-		//for adding the scrollpane to the panel
-		centerPanel.add(scrollPane, BorderLayout.CENTER);
-		//for setting the border to the panel
-		centerPanel.setBorder(BorderFactory.createTitledBorder("Members:"));
-		//for adding the panel to the container
-		cp.add("Center", centerPanel);
+    // --------------------------- Constructor ---------------------------
 
-		//for adding the actionListener to the button
-		printButton.addActionListener(e -> handlePrint());
+    public ListSearchMembers(String query) {
+        super("Searched Members", false, true, false, true);
+        setFrameIcon(new ImageIcon(ClassLoader.getSystemResource("images/List16.gif")));
 
-		//for setting the visible to true
-		setVisible(true);
-		//to show the frame
-		pack();
-	}
-	// ------------------- PRINT LOGIC (Refactored) --------------------
+        this.DEFAULT_QUERY = query;
 
-private void handlePrint() {
-    Thread runner = new Thread(this::processPrintJob);
-    runner.start();
-}
+        initDatabase();
+        initTable();
+        initNorthPanel();
+        initCenterPanel();
+        initPrintButton();
 
-private void processPrintJob() {
-    try {
-        PrinterJob job = PrinterJob.getPrinterJob();
-        job.setPrintable(new PrintingMembers(DEFAULT_QUERY));
-
-        if (!job.printDialog()) {
-            return;
-        }
-
-        setWaitingCursor(true);
-        job.print();
-    } catch (PrinterException ex) {
-        System.out.println("Printing error: " + ex.toString());
-    } finally {
-        setWaitingCursor(false);
+        setVisible(true);
+        pack();
     }
-}
 
-private void setWaitingCursor(boolean waiting) {
-    Cursor cursor = waiting
-            ? Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR)
-            : Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR);
 
-    setCursor(cursor);
-}
+    // --------------------------- Initialization ---------------------------
 
+    private void initDatabase() {
+        try {
+            tableModel = new ResultSetTableModel(JDBC_DRIVER, DATABASE_URL, USER_NAME, PASSWORD, DEFAULT_QUERY);
+            tableModel.setQuery(DEFAULT_QUERY);
+        } catch (SQLException | ClassNotFoundException e) {
+            JOptionPane.showMessageDialog(null,
+                    "Cannot retrieve data from tables: " + e.getMessage(),
+                    "Database Error",
+                    JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void initTable() {
+        table = new JTable(tableModel);
+        table.setPreferredScrollableViewportSize(new Dimension(700, 200));
+        table.setFont(new Font("Tahoma", Font.PLAIN, 12));
+
+        scrollPane = new JScrollPane(table);
+        setupColumnWidths();
+    }
+
+    private void initNorthPanel() {
+        label.setFont(new Font("Tahoma", Font.BOLD, 14));
+        northPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
+        northPanel.add(label);
+
+        getContentPane().add("North", northPanel);
+    }
+
+    private void initCenterPanel() {
+        centerPanel.setLayout(new BorderLayout());
+        centerPanel.setBorder(BorderFactory.createTitledBorder("Members:"));
+        centerPanel.add(scrollPane, BorderLayout.CENTER);
+
+        getContentPane().add("Center", centerPanel);
+    }
+
+    private void initPrintButton() {
+        ImageIcon printIcon = new ImageIcon(ClassLoader.getSystemResource("images/Print16.gif"));
+        printButton = new JButton("print the members", printIcon);
+        printButton.setFont(new Font("Tahoma", Font.PLAIN, 12));
+        printButton.setToolTipText("Print");
+
+        printButton.addActionListener(e -> handlePrint());
+        centerPanel.add(printButton, BorderLayout.NORTH);
+    }
+
+
+    // --------------------------- Column Setup ---------------------------
+
+    private void setupColumnWidths() {
+        for (int i = 0; i < 6; i++) {
+            column = table.getColumnModel().getColumn(i);
+
+            switch (i) {
+                case 0 -> column.setPreferredWidth(30);   // MemberID
+                case 1 -> column.setPreferredWidth(20);   // RegNo
+                case 2 -> column.setPreferredWidth(150);  // Name
+                case 3 -> column.setPreferredWidth(120);  // Email
+                case 4 -> column.setPreferredWidth(20);   // Major
+                case 5 -> column.setPreferredWidth(40);   // ValidUpto
+            }
+        }
+    }
+
+
+    // --------------------------- Print Logic ---------------------------
+
+    private void handlePrint() {
+        Thread runner = new Thread(this::processPrintJob);
+        runner.start();
+    }
+
+    private void processPrintJob() {
+        try {
+            PrinterJob job = PrinterJob.getPrinterJob();
+            job.setPrintable(new PrintingMembers(DEFAULT_QUERY));
+
+            if (!job.printDialog())
+                return;
+
+            setWaitingCursor(true);
+            job.print();
+
+        } catch (PrinterException ex) {
+            System.out.println("Printing error: " + ex);
+        } finally {
+            setWaitingCursor(false);
+        }
+    }
+
+    private void setWaitingCursor(boolean waiting) {
+        Cursor cursor = waiting
+                ? Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR)
+                : Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR);
+        setCursor(cursor);
+    }
 }

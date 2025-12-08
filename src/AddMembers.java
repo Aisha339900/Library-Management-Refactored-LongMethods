@@ -238,6 +238,15 @@ public class AddMembers extends JInternalFrame {
 		pack();
 	}
 
+	private boolean isExpiryDateValid(Date today, Date expiryDate) {
+    if (!today.before(expiryDate)) {
+        showWarning("Expiry Date is invalid");
+        return false;
+    }
+    return true;
+}
+
+
 	private void handleInsertMember() {
     if (!isCorrect()) {
         showWarning("Please, complete the information");
@@ -257,8 +266,7 @@ private void processMemberInsert() {
     Date expiryDate = expiry_date.getDate();
     Date today = new Date();
 
-    if (!today.before(expiryDate)) {
-        showWarning("Expiry Date is invalid");
+    if (!isExpiryDateValid(today, expiryDate)) {
         return;
     }
 
@@ -273,6 +281,7 @@ private void processMemberInsert() {
     insertMemberIntoDatabase();
     dispose();
 }
+
 
 private boolean isDuplicateMember() {
     int regNo = member.getRegNo();
