@@ -234,99 +234,15 @@ public class EditBooks extends JInternalFrame {
 		 * taken from the JTextField[] and make the connection for database,   *
 		 * after that update the table in the database with the new value      *
 		 ***********************************************************************/
-		editButton.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent ae) {
-				//for checking if there is a missing information
-				if (isEditCorrect()) {
-					Thread runner = new Thread() {
-						public void run() {
-                            book = new Books();
-							//for checking if there is no same information in the database
-							book.connection("SELECT * FROM Books WHERE BookID = " + editTextField.getText());
-							int copyright = book.getCopyright();
-							if (copyright > 0) {
-								informationTextField[0].setText(book.getSubject());
-								informationTextField[1].setText(book.getTitle());
-								informationTextField[2].setText(book.getAuthor());
-								informationTextField[3].setText(book.getPublisher());
-								informationTextField[4].setText(book.getCopyright() + "");
-								informationTextField[5].setText(book.getEdition() + "");
-								informationTextField[6].setText(book.getPages() + "");
-								informationTextField[7].setText(book.getISBN());
-								informationTextField[8].setText(book.getNumberOfBooks() + "");
-								informationTextField[9].setText(book.getLibrary());
-							}
-							else {
-								JOptionPane.showMessageDialog(null, "Please, write a correct BookID", "Error", JOptionPane.ERROR_MESSAGE);
-								editTextField.setText(null);
-								clearTextField();
-							}
-						}
-					};
-					runner.start();
-				}
-				//if there is a missing data, then display Message Dialog
-				else
-					JOptionPane.showMessageDialog(null, "Please, write the BookID", "Warning", JOptionPane.WARNING_MESSAGE);
-			}
-		});
+		editButton.addActionListener(ae -> handleEditBook());
 
 		/***********************************************************************
 		 * for adding the action listener to the button,first the text will be *
 		 * taken from the JTextField[] and make the connection for database,   *
 		 * after that update the table in the database with the new value      *
 		 ***********************************************************************/
-		updateInformationButton.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent ae) {
-				//for checking if there is a missing information
-				if (isCorrect()) {
-					Thread runner = new Thread() {
-						public void run() {
-							book = new Books();
-                            book.connection("SELECT * FROM Books WHERE BookID = " + editTextField.getText());
-                            int numberofborrowedbooks=book.getNumberOfBorrowedBooks();
-                            if((Integer.parseInt(data[8]))>=numberofborrowedbooks)
-                            {
-                                
-                              if((Integer.parseInt(data[8]))>numberofborrowedbooks)
-                              {
-                                  availble = true;
-                                  numberofavailblebooks=((Integer.parseInt(data[8]))-numberofborrowedbooks);
-                              }
-                              else
-                              {
-                                  availble = false;
-                                  numberofavailblebooks=0;
-                              }
-                              book.update("UPDATE Books SET Subject = '" + data[0] + "',Title = '" + data[1] + "',Author = '" + data[2] +
-							        "',Publisher = '" + data[3] + "',Copyright =" + data[4] + ",Edition =" + data[5] +
-							        ",Pages =" + data[6] + ",ISBN = '" + data[7] + "',NumberOfBooks =" + data[8] +
-							        ",NumberOfAvailbleBooks =" + numberofavailblebooks + ",Library = '" + data[9] + "',Availble =" + availble +
-							        " WHERE BookID =" + editTextField.getText());
-							//for setting the array of JTextField to empty
-							//clearTextField();
-                            dispose();
-                                  
-                              }
-                            else
-                            {
-                                JOptionPane.showMessageDialog(null, "Number of copies must be larger, as some books are borrowed", "Warning", JOptionPane.WARNING_MESSAGE);
-                            }
-                             /*//for checking if there is no same information in the database
-							if (Integer.parseInt(data[8]) == 0)
-								availble = false;
-							else
-								availble = true;*/
-							
-						}
-					};
-					runner.start();
-				}
-				//if there is a missing data, then display Message Dialog
-				else
-					JOptionPane.showMessageDialog(null, "Please, complete the information", "Warning", JOptionPane.WARNING_MESSAGE);
-			}
-		});
+		updateInformationButton.addActionListener(ae -> handleUpdateBook());
+
 		//for adding the action listener for the button to dispose the frame
 		exitButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ae) {
@@ -338,6 +254,110 @@ public class EditBooks extends JInternalFrame {
 		//show the internal frame
 		pack();
 	}
+
+	// ------------------------ EDIT BOOK LOGIC ------------------------
+
+private void handleEditBook() {
+    if (!isEditCorrect()) {
+        showWarning("Please, write the BookID");
+        return;
+    }
+    Thread runner = new Thread(this::processEditBook);
+    runner.start();
+}
+
+private void processEditBook() {
+    book = new Books();
+    book.connection("SELECT * FROM Books WHERE BookID = " + editTextField.getText());
+
+    if (!bookExists()) {
+        showError("Please, write a correct BookID");
+        editTextField.setText(null);
+        clearTextField();
+        return;
+    }
+
+    fillBookFields();
+}
+
+private boolean bookExists() {
+    return book.getCopyright() > 0;
+}
+
+private void fillBookFields() {
+    informationTextField[0].setText(book.getSubject());
+    informationTextField[1].setText(book.getTitle());
+    informationTextField[2].setText(book.getAuthor());
+    informationTextField[3].setText(book.getPublisher());
+    informationTextField[4].setText(book.getCopyright() + "");
+    informationTextField[5].setText(book.getEdition() + "");
+    informationTextField[6].setText(book.getPages() + "");
+    informationTextField[7].setText(book.getISBN());
+    informationTextField[8].setText(book.getNumberOfBooks() + "");
+    informationTextField[9].setText(book.getLibrary());
+}
+
+
+// ------------------------ UPDATE BOOK LOGIC ------------------------
+
+private void handleUpdateBook() {
+    if (!isCorrect()) {
+        showWarning("Please, complete the information");
+        return;
+    }
+
+    Thread runner = new Thread(this::processUpdateBook);
+    runner.start();
+}
+
+private void processUpdateBook() {
+    book = new Books();
+    book.connection("SELECT * FROM Books WHERE BookID = " + editTextField.getText());
+
+    int borrowed = book.getNumberOfBorrowedBooks();
+    int totalCopies = Integer.parseInt(data[8]);
+
+    if (totalCopies < borrowed) {
+        showWarning("Number of copies must be larger, as some books are borrowed");
+        return;
+    }
+
+    updateBookAvailability(totalCopies, borrowed);
+    updateBookRecord();
+    dispose();
+}
+
+private void updateBookAvailability(int totalCopies, int borrowed) {
+    if (totalCopies > borrowed) {
+        availble = true;
+        numberofavailblebooks = totalCopies - borrowed;
+    } else {
+        availble = false;
+        numberofavailblebooks = 0;
+    }
+}
+
+private void updateBookRecord() {
+    String query = "UPDATE Books SET Subject = '" + data[0] + "',Title = '" + data[1] +
+            "',Author = '" + data[2] + "',Publisher = '" + data[3] + "',Copyright =" + data[4] +
+            ",Edition =" + data[5] + ",Pages =" + data[6] + ",ISBN = '" + data[7] + "',NumberOfBooks =" +
+            data[8] + ",NumberOfAvailbleBooks =" + numberofavailblebooks + ",Library = '" +
+            data[9] + "',Availble =" + availble + " WHERE BookID =" + editTextField.getText();
+
+    book.update(query);
+}
+
+
+// ------------------------ UTILITY ------------------------
+
+private void showWarning(String msg) {
+    JOptionPane.showMessageDialog(null, msg, "Warning", JOptionPane.WARNING_MESSAGE);
+}
+
+private void showError(String msg) {
+    JOptionPane.showMessageDialog(null, msg, "Error", JOptionPane.ERROR_MESSAGE);
+}
+
 
     class keyListener extends KeyAdapter {
 

@@ -288,91 +288,15 @@ private DateButton expiry_date;
 		 * taken from the JTextField[] and make the connection for database,   *
 		 * after that update the table in the database with the new value      *
 		 ***********************************************************************/
-		editButton.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent ae) {
-				//for checking if there is a missing information
-				if (isEditCorrect()) {
-					Thread runner = new Thread() {
-						public void run() {
-                            member = new Members();
-							//for checking if there is no same information in the database
-							member.connection("SELECT * FROM Members WHERE MemberID = " + editTextField.getText());
-                            //member.connection("SELECT * FROM Members WHERE ID = " + editTextField.getText());
-                            //int ID = member.getID();
-                            int regNo = member.getRegNo();
-							if (regNo > 0) {
-                            //if(ID==Integer.parseInt(editTextField.getText())){
-
-								informationTextField[0].setText(member.getRegNo() + "");
-								informationTextField[1].setText(member.getName());
-								informationTextField[2].setText(member.getEmail());
-								informationTextField[3].setText(member.getMajor());
-								expiry_date.setDate(member.getValidUpto());
-								informationPasswordField[0].setText(member.getPassword());
-								informationPasswordField[1].setText(member.getPassword());
-							}
-							else {
-								JOptionPane.showMessageDialog(null, "Please, write a correct MemberID", "Error", JOptionPane.ERROR_MESSAGE);
-								editTextField.setText(null);
-								clearTextField();
-							}
-						}
-					};
-					runner.start();
-				}
-				else {
-					JOptionPane.showMessageDialog(null, "Please, write the MemberID", "Warning", JOptionPane.WARNING_MESSAGE);
-				}
-			}
-		});
+		editButton.addActionListener(ae -> handleEditMember());
 
 		/***********************************************************************
 		 * for adding the action listener to the button,first the text will be *
 		 * taken from the JTextField[] and make the connection for database,   *
 		 * after that update the table in the database with the new value      *
 		 ***********************************************************************/
-		updateInformationButton.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent ae) {
-				//for checking if there is a missing information
-				if (isCorrect()) {
-					if (isPasswordCorrect()) {
-						Thread runner = new Thread() {
-							public void run() {
-                            Date expiryDate= new Date();
-                            expiryDate=expiry_date.getDate();
-                            Date presentDate=new Date();
-                            if(presentDate.before(expiryDate))
-                           {
-								member = new Members();
-                                /*member.connection("SELECT * FROM Members WHERE ID = " + data[0]);
-								int ID = member.getID();
-								if (Integer.parseInt(data[0]) != ID) {*/
-								//for updting the members database
-								member.update("UPDATE Members SET RegNo = " + data[0] + ", Password = '" + data[1] + "', Name = '" +
-								        data[2] + "', EMail = '" + data[3] + "', Major = '" + data[4] + "', ValidUpto = '" +
-								        data[5] + "' WHERE MemberID = " + editTextField.getText());
-								//for setting the array of JTextField to empty
-								//clearTextField();
-                                dispose();
-                                /*}
-                                else
-									JOptionPane.showMessageDialog(null, "Member is in the Library", "Error", JOptionPane.ERROR_MESSAGE);*/
-							}
-                            else
-                                JOptionPane.showMessageDialog(null, "Expiry Date is invalid", "Warning", JOptionPane.WARNING_MESSAGE);
-                        }
-						};
-						runner.start();
-					}
-					//if the password is wrong
-					else
-						JOptionPane.showMessageDialog(null, "the passowrd is wrong", "Error", JOptionPane.ERROR_MESSAGE);
-				}
-				//if there is a missing data, then display Message Dialog
-				else
-					JOptionPane.showMessageDialog(null, "Please, complete the information", "Warning", JOptionPane.WARNING_MESSAGE);
-			}
-		});
+		updateInformationButton.addActionListener(ae -> handleUpdateMember());
+
 		//for adding the action listener for the button to dispose the frame
 		OKButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ae) {
@@ -384,6 +308,101 @@ private DateButton expiry_date;
 		//show the internal frame
 		pack();
 	}
+
+	// ------------------------- EDIT MEMBER LOGIC -------------------------
+
+private void handleEditMember() {
+    if (!isEditCorrect()) {
+        showWarning("Please, write the MemberID");
+        return;
+    }
+
+    Thread runner = new Thread(this::processEditMember);
+    runner.start();
+}
+
+private void processEditMember() {
+    member = new Members();
+    member.connection("SELECT * FROM Members WHERE MemberID = " + editTextField.getText());
+
+    if (!memberExists()) {
+        showError("Please, write a correct MemberID");
+        editTextField.setText(null);
+        clearTextField();
+        return;
+    }
+
+    fillMemberFields();
+}
+
+private boolean memberExists() {
+    return member.getRegNo() > 0;
+}
+
+private void fillMemberFields() {
+    informationTextField[0].setText(member.getRegNo() + "");
+    informationTextField[1].setText(member.getName());
+    informationTextField[2].setText(member.getEmail());
+    informationTextField[3].setText(member.getMajor());
+    expiry_date.setDate(member.getValidUpto());
+    informationPasswordField[0].setText(member.getPassword());
+    informationPasswordField[1].setText(member.getPassword());
+}
+
+
+// ------------------------- UPDATE MEMBER LOGIC -------------------------
+
+private void handleUpdateMember() {
+    if (!isCorrect()) {
+        showWarning("Please, complete the information");
+        return;
+    }
+
+    if (!isPasswordCorrect()) {
+        showError("The password is wrong");
+        return;
+    }
+
+    Thread runner = new Thread(this::processUpdateMember);
+    runner.start();
+}
+
+private void processUpdateMember() {
+    if (!isExpiryValid()) {
+        showWarning("Expiry Date is invalid");
+        return;
+    }
+
+    updateMemberRecord();
+    dispose();
+}
+
+private boolean isExpiryValid() {
+    Date expiryDate = expiry_date.getDate();
+    Date today = new Date();
+    return today.before(expiryDate);
+}
+
+private void updateMemberRecord() {
+    member = new Members();
+    String query = "UPDATE Members SET RegNo = " + data[0] + ", Password = '" + data[1] +
+            "', Name = '" + data[2] + "', EMail = '" + data[3] + "', Major = '" + data[4] +
+            "', ValidUpto = '" + data[5] + "' WHERE MemberID = " + editTextField.getText();
+
+    member.update(query);
+}
+
+
+// ------------------------- UTILITY -------------------------
+
+private void showWarning(String msg) {
+    JOptionPane.showMessageDialog(null, msg, "Warning", JOptionPane.WARNING_MESSAGE);
+}
+
+private void showError(String msg) {
+    JOptionPane.showMessageDialog(null, msg, "Error", JOptionPane.ERROR_MESSAGE);
+}
+
 
     class keyListener extends KeyAdapter {
 

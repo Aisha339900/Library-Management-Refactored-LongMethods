@@ -224,48 +224,8 @@ public class AddMembers extends JInternalFrame {
 		 * taken from the JTextField[] and make the connection for database,   *
 		 * after that update the table in the database with the new value      *
 		 ***********************************************************************/
-		insertInformationButton.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent ae) {
-				//for checking if there is a missing information
-				if (isCorrect()) {
-					if (isPasswordCorrect()) {
-						Thread runner = new Thread() {
-							public void run() {
-                                Date expiryDate= new Date();
-                                expiryDate=expiry_date.getDate();
-                                Date presentDate=new Date();
-                                if(presentDate.before(expiryDate))
-                               {
-                                member = new Members();
-								//for checking if there is no same information in the database
-								member.connection("SELECT * FROM Members WHERE RegNo = " + data[0]);
-								int regNo = member.getRegNo();
-								if (Integer.parseInt(data[0]) != regNo) {
-									member.update("INSERT INTO Members (RegNo,Password,Name,EMail,Major,ValidUpto) VALUES (" +
-									        data[0] + ", '" + data[1] + "','" + data[2] + "','" +
-									        data[3] + "','" + data[4] + "','" + data[5] + "')");
-									//for setting the array of JTextField & JPasswordField to null
-									//clearTextField();
-                                    dispose();
-								}
-								else
-									JOptionPane.showMessageDialog(null, "Member is in the Library", "Error", JOptionPane.ERROR_MESSAGE);
-							}
-                                else
-                                    JOptionPane.showMessageDialog(null, "Expiry Date is invalid", "Warning", JOptionPane.WARNING_MESSAGE);
-                        }
-						};
-						runner.start();
-					}
-					//if the password is wrong
-					else
-						JOptionPane.showMessageDialog(null, "the passowrd is wrong", "Error", JOptionPane.ERROR_MESSAGE);
-				}
-				//if there is a missing data, then display Message Dialog
-				else
-					JOptionPane.showMessageDialog(null, "Please, complete the information", "Warning", JOptionPane.WARNING_MESSAGE);
-			}
-		});
+		insertInformationButton.addActionListener(ae -> handleInsertMember());
+
 		//for adding the action listener for the button to dispose the frame
 		OKButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ae) {
@@ -277,6 +237,64 @@ public class AddMembers extends JInternalFrame {
 		//show the internal frame
 		pack();
 	}
+
+	private void handleInsertMember() {
+    if (!isCorrect()) {
+        showWarning("Please, complete the information");
+        return;
+    }
+
+    if (!isPasswordCorrect()) {
+        showError("The password is wrong");
+        return;
+    }
+
+    Thread runner = new Thread(this::processMemberInsert);
+    runner.start();
+}
+
+private void processMemberInsert() {
+    Date expiryDate = expiry_date.getDate();
+    Date today = new Date();
+
+    if (!today.before(expiryDate)) {
+        showWarning("Expiry Date is invalid");
+        return;
+    }
+
+    member = new Members();
+    member.connection("SELECT * FROM Members WHERE RegNo = " + data[0]);
+
+    if (isDuplicateMember()) {
+        showError("Member is in the Library");
+        return;
+    }
+
+    insertMemberIntoDatabase();
+    dispose();
+}
+
+private boolean isDuplicateMember() {
+    int regNo = member.getRegNo();
+    return Integer.parseInt(data[0]) == regNo;
+}
+
+private void insertMemberIntoDatabase() {
+    String query = "INSERT INTO Members (RegNo,Password,Name,EMail,Major,ValidUpto) VALUES (" +
+            data[0] + ", '" + data[1] + "','" + data[2] + "','" +
+            data[3] + "','" + data[4] + "','" + data[5] + "')";
+
+    member.update(query);
+}
+
+private void showWarning(String message) {
+    JOptionPane.showMessageDialog(null, message, "Warning", JOptionPane.WARNING_MESSAGE);
+}
+
+private void showError(String message) {
+    JOptionPane.showMessageDialog(null, message, "Error", JOptionPane.ERROR_MESSAGE);
+}
+
 
     class keyListener extends KeyAdapter {
 

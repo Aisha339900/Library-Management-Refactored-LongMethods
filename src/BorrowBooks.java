@@ -190,90 +190,8 @@ private DateButton return_date;
 		 * taken from the JTextField[] and make the connection for database,   *
 		 * after that update the table in the database with the new value      *
 		 ***********************************************************************/
-		borrowButton.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent ae) {
-				//for checking if there is a missing information
-				if (isCorrect()) {
-					Thread runner = new Thread() {
-                        public void run() {
-                            //Date presentDate=current_date.getDate();
-                            Date presentDate=new Date();
-                            Date returnDate= new Date();
-                            returnDate=return_date.getDate();
-                            if(presentDate.before(returnDate))
-                            {
-							book = new Books();
-							member = new Members();
-							borrow = new Borrow();
-                            borrow.connection("SELECT * FROM Borrow WHERE BookID="+data[0]+" AND MemberID="+data[1]);
-                            int bookid=borrow.getBookID();
-                            int memberid=borrow.getMemberID();
-                            if((bookid!=Integer.parseInt(data[0])) && (memberid!=Integer.parseInt(data[1])))
-                            {
-							book.connection("SELECT * FROM Books WHERE BookID = " + data[0]);
-							member.connection("SELECT * FROM Members WHERE MemberID = " + data[1]);
-                            Date expiryDate= new Date();
-                            expiryDate=member.getValidUpto();
-                            if(presentDate.before(expiryDate))
-                            {
-                            int bookID=book.getBookID();
-                            int memberID=member.getMemberID();
-                            if(bookID>=1 && memberID>=1)
-                            {
-							int numberOfAvailbleBooks = book.getNumberOfAvailbleBooks();
-							int numberOfBorrowedBooks = 1 + book.getNumberOfBorrowedBooks();
-							int numberOfBooks = 1 + member.getNumberOfBooks();
-							//for checking if there is one book in the database
-							if (numberOfAvailbleBooks == 1) {
-								numberOfAvailbleBooks -= 1;
-								book.update("UPDATE Books SET NumberOfAvailbleBooks =" + numberOfAvailbleBooks +
-								        ",NumberOfBorrowedBooks =" + numberOfBorrowedBooks + ",Availble = false WHERE BookID =" + data[0]);
-								member.update("UPDATE Members SET NumberOfBooks = " + numberOfBooks + " WHERE MemberID = " + data[1]);
-								borrow.update("INSERT INTO Borrow (BookID, MemberID, DayOfBorrowed, DayOfReturn) VALUES (" +
-								        data[0] + "," + data[1] + ",'" + data[2] + "','" + data[3] + "')");
-								//for setting the array of JTextField to null
-								//clearTextField();
-                                dispose();
-							}
-							else if (numberOfAvailbleBooks > 1) {
-								numberOfAvailbleBooks -= 1;
-								book.update("UPDATE Books SET NumberOfAvailbleBooks =" + numberOfAvailbleBooks +
-								        ",NumberOfBorrowedBooks =" + numberOfBorrowedBooks + " WHERE BookID =" + data[0]);
-								member.update("UPDATE Members SET NumberOfBooks =" + numberOfBooks + " WHERE MemberID =" + data[1]);
-								borrow.update("INSERT INTO Borrow (BookID, MemberID, DayOfBorrowed, DayOfReturn) VALUES (" +
-								        data[0] + "," + data[1] + ",'" + data[2] + "','" + data[3] + "')");
-								//for setting the array of JTextField to null
-								//clearTextField();
-                                dispose();
-							}
-							else
-								JOptionPane.showMessageDialog(null, "The book is borrowed", "Warning", JOptionPane.WARNING_MESSAGE);
+borrowButton.addActionListener(ae -> handleBorrowAction());
 
-                            }
-                            else
-                                 JOptionPane.showMessageDialog(null, "Member ID or Book ID entered not found on databse");
-                            }
-                            else
-                                JOptionPane.showMessageDialog(null, "Member is Expired", "Warning", JOptionPane.WARNING_MESSAGE);
-                            }
-
-                            else
-                            {
-                                JOptionPane.showMessageDialog(null, "The book is already borrowed by this member", "Warning", JOptionPane.WARNING_MESSAGE);
-                                clearTextField();
-                            }
-                        }
-                         else
-                                JOptionPane.showMessageDialog(null, "Return Date is invalid", "Warning", JOptionPane.WARNING_MESSAGE);
-                    }
-					};
-					runner.start();
-				}
-				//if there is a missing data, then display Message Dialog
-				else
-					JOptionPane.showMessageDialog(null, "Please, complete the information", "Warning", JOptionPane.WARNING_MESSAGE);
-			}
-		});
 		//for adding the action listener for the button to dispose the frame
 		cancelButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ae) {
@@ -285,6 +203,121 @@ private DateButton return_date;
 		//show the internal frame
 		pack();
 	}
+
+	private void handleBorrowAction() {
+    if (!isCorrect()) {
+        showWarning("Please, complete the information");
+        return;
+    }
+
+    Thread runner = new Thread(this::processBorrowRequest);
+    runner.start();
+}
+
+private void processBorrowRequest() {
+    Date today = new Date();
+    Date returnDate = return_date.getDate();
+
+    if (!today.before(returnDate)) {
+        showWarning("Return Date is invalid");
+        return;
+    }
+
+    initializeObjects();
+
+    if (isAlreadyBorrowedByMember()) {
+        showWarning("The book is already borrowed by this member");
+        clearTextField();
+        return;
+    }
+
+    if (!loadBookAndMemberDetails(today)) {
+        return;
+    }
+
+    processBookBorrow();
+}
+
+private void initializeObjects() {
+    book = new Books();
+    member = new Members();
+    borrow = new Borrow();
+}
+
+private boolean isAlreadyBorrowedByMember() {
+    borrow.connection("SELECT * FROM Borrow WHERE BookID=" + data[0] +
+            " AND MemberID=" + data[1]);
+    int bookId = borrow.getBookID();
+    int memberId = borrow.getMemberID();
+    return (bookId == Integer.parseInt(data[0])) &&
+           (memberId == Integer.parseInt(data[1]));
+}
+
+private boolean loadBookAndMemberDetails(Date today) {
+    book.connection("SELECT * FROM Books WHERE BookID = " + data[0]);
+    member.connection("SELECT * FROM Members WHERE MemberID = " + data[1]);
+
+    Date expiry = member.getValidUpto();
+    if (!today.before(expiry)) {
+        showWarning("Member is Expired");
+        return false;
+    }
+
+    int bookId = book.getBookID();
+    int memberId = member.getMemberID();
+
+    if (bookId < 1 || memberId < 1) {
+        showWarning("Member ID or Book ID entered not found on database");
+        return false;
+    }
+
+    return true;
+}
+
+private void processBookBorrow() {
+    int available = book.getNumberOfAvailbleBooks();
+    int borrowed = 1 + book.getNumberOfBorrowedBooks();
+    int totalForMember = 1 + member.getNumberOfBooks();
+
+    if (available < 1) {
+        showWarning("The book is borrowed");
+        return;
+    }
+
+    updateBook(available - 1, borrowed);
+    updateMember(totalForMember);
+    insertBorrowRecord();
+
+    dispose();
+}
+
+private void updateBook(int available, int borrowed) {
+    String query = "UPDATE Books SET NumberOfAvailbleBooks=" + available +
+            ", NumberOfBorrowedBooks=" + borrowed;
+
+    // Mark as unavailable if no more copies
+    if (available == 0) {
+        query += ", Availble=false ";
+    }
+
+    query += " WHERE BookID=" + data[0];
+    book.update(query);
+}
+
+private void updateMember(int totalBooks) {
+    member.update("UPDATE Members SET NumberOfBooks=" + totalBooks +
+            " WHERE MemberID=" + data[1]);
+}
+
+private void insertBorrowRecord() {
+    borrow.update("INSERT INTO Borrow (BookID, MemberID, DayOfBorrowed, DayOfReturn) VALUES (" +
+            data[0] + "," + data[1] + ",'" + data[2] + "','" + data[3] + "')");
+}
+
+private void showWarning(String msg) {
+    JOptionPane.showMessageDialog(null, msg, "Warning", JOptionPane.WARNING_MESSAGE);
+}
+
 
     class keyListener extends KeyAdapter {
 

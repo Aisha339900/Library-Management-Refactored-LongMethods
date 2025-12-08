@@ -143,30 +143,44 @@ public class ListAvailbleBooks extends JInternalFrame {
 		cp.add("Center", centerPanel);
 
 		//for adding the actionListener to the button
-		printButton.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent ae) {
-				Thread runner = new Thread() {
-					public void run() {
-						try {
-							PrinterJob prnJob = PrinterJob.getPrinterJob();
-							prnJob.setPrintable(new PrintingBooks(DEFAULT_QUERY));
-							if (!prnJob.printDialog())
-								return;
-							setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-							prnJob.print();
-							setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
-						}
-						catch (PrinterException ex) {
-							System.out.println("Printing error: " + ex.toString());
-						}
-					}
-				};
-				runner.start();
-			}
-		});
+		printButton.addActionListener(e -> handlePrint());
+
 		//for setting the visible to true
 		setVisible(true);
 		//to show the frame
 		pack();
 	}
+	// ------------------- PRINT LOGIC (Refactored) --------------------
+
+private void handlePrint() {
+    Thread runner = new Thread(this::processPrintJob);
+    runner.start();
+}
+
+private void processPrintJob() {
+    try {
+        PrinterJob job = PrinterJob.getPrinterJob();
+        job.setPrintable(new PrintingBooks(DEFAULT_QUERY));
+
+        if (!job.printDialog()) {
+            return;
+        }
+
+        setWaitingCursor(true);
+        job.print();
+    } catch (PrinterException ex) {
+        System.out.println("Printing error: " + ex.toString());
+    } finally {
+        setWaitingCursor(false);
+    }
+}
+
+private void setWaitingCursor(boolean waiting) {
+    Cursor cursor = waiting ?
+            Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR) :
+            Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR);
+
+    setCursor(cursor);
+}
+
 }

@@ -139,257 +139,202 @@ public class JLibrary extends JFrame implements ActionListener {
         setVisible(true);
     }
     public void actionPerformed(ActionEvent ae) {
-        if (ae.getSource() == menu.addBook || ae.getSource() == toolbar.button[0]) {
-            Thread runner = new Thread() {
+    Object src = ae.getSource();
 
-                public void run() {
-                    addBooks = new AddBooks();
-                    desktop.add(addBooks);
-                    try {
-                        addBooks.setSelected(true);
-                    }catch (java.beans.PropertyVetoException e) {
-                }
-                }
-            };
-            runner.start();
-        }
-        if (ae.getSource() == menu.listBook || ae.getSource() == toolbar.button[1]) {
-            Thread runner = new Thread() {
-
-                public void run() {
-                    listBooks = new ListBooks();
-                    desktop.add(listBooks);
-                    try {
-                        listBooks.setSelected(true);
-                    } catch (java.beans.PropertyVetoException e) {
-                    }
-                }
-            };
-            runner.start();
-        }
-        if (ae.getSource() == menu.listAvailbleBook || ae.getSource() == toolbar.button[2]) {
-            Thread runner = new Thread() {
-
-                public void run() {
-                    listAvailble = new ListAvailbleBooks();
-                    desktop.add(listAvailble);
-                    try {
-                        listAvailble.setSelected(true);
-                    } catch (java.beans.PropertyVetoException e) {
-                    }
-                }
-            };
-            runner.start();
-        }
-        if (ae.getSource() == menu.listBorrowedBook || ae.getSource() == toolbar.button[3]) {
-            Thread runner = new Thread() {
-
-                public void run() {
-                    listBorrowed = new ListBorrowedBooks();
-                    desktop.add(listBorrowed);
-                    try {
-                        listBorrowed.setSelected(true);
-                    } catch (java.beans.PropertyVetoException e) {
-                    }
-                }
-            };
-            runner.start();
-        }
-        if (ae.getSource() == menu.editBook || ae.getSource() == toolbar.button[4]) {
-            Thread runner = new Thread() {
-
-                public void run() {
-                    editBooks = new EditBooks();
-                    desktop.add(editBooks);
-                    try {
-                        editBooks.setSelected(true);
-                    } catch (java.beans.PropertyVetoException e) {
-                    }
-                }
-            };
-            runner.start();
-        }
-        if (ae.getSource() == menu.removeBook || ae.getSource() == toolbar.button[5]) {
-            Thread runner = new Thread() {
-
-                public void run() {
-                    removeBooks = new RemoveBooks();
-                    desktop.add(removeBooks);
-                    try {
-                        removeBooks.setSelected(true);
-                    } catch (java.beans.PropertyVetoException e) {
-                    }
-                }
-            };
-            runner.start();
-        }
-        if (ae.getSource() == menu.addMember || ae.getSource() == toolbar.button[6]) {
-            Thread runner = new Thread() {
-
-                public void run() {
-                    addMembers = new AddMembers();
-                    desktop.add(addMembers);
-                    try {
-                        addMembers.setSelected(true);
-                    } catch (java.beans.PropertyVetoException e) {
-                    }
-                }
-            };
-            runner.start();
-        }
-        if (ae.getSource() == menu.listMember || ae.getSource() == toolbar.button[7]) {
-            Thread runner = new Thread() {
-
-                public void run() {
-                    listMembers = new ListMembers();
-                    desktop.add(listMembers);
-                    try {
-                        listMembers.setSelected(true);
-                    } catch (java.beans.PropertyVetoException e) {
-                    }
-                }
-            };
-            runner.start();
-        }
-        if (ae.getSource() == menu.editMember || ae.getSource() == toolbar.button[8]) {
-            Thread runner = new Thread() {
-
-                public void run() {
-                    editMembers = new EditMembers();
-                    desktop.add(editMembers);
-                    try {
-                        editMembers.setSelected(true);
-                    } catch (java.beans.PropertyVetoException e) {
-                    }
-                }
-            };
-            runner.start();
-        }
-        if (ae.getSource() == menu.removeMember || ae.getSource() == toolbar.button[9]) {
-            Thread runner = new Thread() {
-
-                public void run() {
-                    removeMembers = new RemoveMembers();
-                    desktop.add(removeMembers);
-                    try {
-                        removeMembers.setSelected(true);
-                    } catch (java.beans.PropertyVetoException e) {
-                    }
-                }
-            };
-            runner.start();
-        }
-        if (ae.getSource() == menu.searchBooksAndMembers || ae.getSource() == toolbar.button[10]) {
-            Thread runner = new Thread() {
-
-                public void run() {
-                    search = new SearchBooksAndMembers();
-                    desktop.add(search);
-                    try {
-                        search.setSelected(true);
-                    } catch (java.beans.PropertyVetoException e) {
-                    }
-                }
-            };
-            runner.start();
-        }
-        if (ae.getSource() == menu.borrowBook || ae.getSource() == toolbar.button[11]) {
-            Thread runner = new Thread() {
-
-                public void run() {
-                    borrowBooks = new BorrowBooks();
-                    desktop.add(borrowBooks);
-                    try {
-                        borrowBooks.setSelected(true);
-                    } catch (java.beans.PropertyVetoException e) {
-                    }
-                }
-            };
-            runner.start();
-        }
-        if (ae.getSource() == menu.returnBook || ae.getSource() == toolbar.button[12]) {
-            Thread runner = new Thread() {
-
-                public void run() {
-                    returnBooks = new ReturnBooks();
-                    desktop.add(returnBooks);
-                    try {
-                        returnBooks.setSelected(true);
-                    } catch (java.beans.PropertyVetoException e) {
-                    }
-                }
-            };
-            runner.start();
-        }
-        if(ae.getSource()==menu.listissuedbooks || ae.getSource() == toolbar.button[13]){
-            Thread runner = new Thread() {
-
-                public void run() {
-                    listIssued=new ListIssuedBooks();
-                    desktop.add(listIssued);
-                    try {
-                        listIssued.setSelected(true);
-                    } catch (java.beans.PropertyVetoException e) {
-                    }
-                }
-            };
-            runner.start();
-        }
-        if (ae.getSource() == menu.notepad || ae.getSource() == toolbar.button[14]) {
-            Thread runner = new Thread() {
-
-                public void run() {
-                    try
-                    {
-                   Runtime.getRuntime().exec("notepad.exe");
-                    }catch(Exception e){}
-                }
-            };
-            runner.start();
-        }
-
-        if (ae.getSource() == menu.calculator || ae.getSource() == toolbar.button[15]) {
-            Thread runner = new Thread() {
-
-                public void run() {
-                    try
-                    {
-                   Runtime.getRuntime().exec("calc.exe");
-                    }catch(Exception e){}
-                }
-            };
-            runner.start();
-        }
-        if(ae.getSource()==menu.changePassword || ae.getSource() == toolbar.button[16]){
-            Thread runner = new Thread() {
-
-                public void run() {
-                    changePassword=new ChangePassword();
-                    desktop.add(changePassword);
-                    try {
-                        changePassword.setSelected(true);
-                    } catch (java.beans.PropertyVetoException e) {
-                    }
-                }
-            };
-            runner.start();
-        }
-        if(ae.getSource()==menu.deleteLibrarian || ae.getSource() == toolbar.button[17]){
-           
-            deleteUser=new DeleteLibrarian();
-        }
-        if (ae.getSource() == menu.about || ae.getSource() == toolbar.button[18]) {
-            Thread runner = new Thread() {
-
-                public void run() {
-                    JOptionPane.showMessageDialog(null, new About(), "About Library Management System", JOptionPane.PLAIN_MESSAGE);
-                }
-            };
-            runner.start();
-        }
-        if (ae.getSource() == menu.exit || ae.getSource() == toolbar.button[19]) {
-            dispose();
-            System.exit(0);
-        }
+    if (src == menu.exit || src == toolbar.button[19]) {
+        handleExit();
+    } else if (src == menu.addBook || src == toolbar.button[0]) {
+        openAddBook();
+    } else if (src == menu.listBook || src == toolbar.button[1]) {
+        openListBooks();
+    } else if (src == menu.listAvailbleBook || src == toolbar.button[2]) {
+        openListAvailable();
+    } else if (src == menu.listBorrowedBook || src == toolbar.button[3]) {
+        openListBorrowed();
+    } else if (src == menu.editBook || src == toolbar.button[4]) {
+        openEditBook();
+    } else if (src == menu.removeBook || src == toolbar.button[5]) {
+        openRemoveBook();
+    } else if (src == menu.addMember || src == toolbar.button[6]) {
+        openAddMember();
+    } else if (src == menu.listMember || src == toolbar.button[7]) {
+        openListMembers();
+    } else if (src == menu.editMember || src == toolbar.button[8]) {
+        openEditMember();
+    } else if (src == menu.removeMember || src == toolbar.button[9]) {
+        openRemoveMember();
+    } else if (src == menu.searchBooksAndMembers || src == toolbar.button[10]) {
+        openSearch();
+    } else if (src == menu.borrowBook || src == toolbar.button[11]) {
+        openBorrow();
+    } else if (src == menu.returnBook || src == toolbar.button[12]) {
+        openReturn();
+    } else if (src == menu.listissuedbooks || src == toolbar.button[13]) {
+        openIssued();
+    } else if (src == menu.notepad || src == toolbar.button[14]) {
+        openNotepad();
+    } else if (src == menu.calculator || src == toolbar.button[15]) {
+        openCalculator();
+    } else if (src == menu.changePassword || src == toolbar.button[16]) {
+        openChangePassword();
+    } else if (src == menu.deleteLibrarian || src == toolbar.button[17]) {
+        openDeleteLibrarian();
+    } else if (src == menu.about || src == toolbar.button[18]) {
+        openAbout();
     }
+}
+// ----------- WINDOW OPENING HELPERS -------------
+
+private void runAsync(Runnable task) {
+    Thread runner = new Thread(task);
+    runner.start();
+}
+
+private void openAddBook() {
+    runAsync(() -> {
+        addBooks = new AddBooks();
+        desktop.add(addBooks);
+        try { addBooks.setSelected(true); } catch (Exception ignored) {}
+    });
+}
+
+private void openListBooks() {
+    runAsync(() -> {
+        listBooks = new ListBooks();
+        desktop.add(listBooks);
+        try { listBooks.setSelected(true); } catch (Exception ignored) {}
+    });
+}
+
+private void openListAvailable() {
+    runAsync(() -> {
+        listAvailble = new ListAvailbleBooks();
+        desktop.add(listAvailble);
+        try { listAvailble.setSelected(true); } catch (Exception ignored) {}
+    });
+}
+
+private void openListBorrowed() {
+    runAsync(() -> {
+        listBorrowed = new ListBorrowedBooks();
+        desktop.add(listBorrowed);
+        try { listBorrowed.setSelected(true); } catch (Exception ignored) {}
+    });
+}
+
+private void openEditBook() {
+    runAsync(() -> {
+        editBooks = new EditBooks();
+        desktop.add(editBooks);
+        try { editBooks.setSelected(true); } catch (Exception ignored) {}
+    });
+}
+
+private void openRemoveBook() {
+    runAsync(() -> {
+        removeBooks = new RemoveBooks();
+        desktop.add(removeBooks);
+        try { removeBooks.setSelected(true); } catch (Exception ignored) {}
+    });
+}
+
+private void openAddMember() {
+    runAsync(() -> {
+        addMembers = new AddMembers();
+        desktop.add(addMembers);
+        try { addMembers.setSelected(true); } catch (Exception ignored) {}
+    });
+}
+
+private void openListMembers() {
+    runAsync(() -> {
+        listMembers = new ListMembers();
+        desktop.add(listMembers);
+        try { listMembers.setSelected(true); } catch (Exception ignored) {}
+    });
+}
+
+private void openEditMember() {
+    runAsync(() -> {
+        editMembers = new EditMembers();
+        desktop.add(editMembers);
+        try { editMembers.setSelected(true); } catch (Exception ignored) {}
+    });
+}
+
+private void openRemoveMember() {
+    runAsync(() -> {
+        removeMembers = new RemoveMembers();
+        desktop.add(removeMembers);
+        try { removeMembers.setSelected(true); } catch (Exception ignored) {}
+    });
+}
+
+private void openSearch() {
+    runAsync(() -> {
+        search = new SearchBooksAndMembers();
+        desktop.add(search);
+        try { search.setSelected(true); } catch (Exception ignored) {}
+    });
+}
+
+private void openBorrow() {
+    runAsync(() -> {
+        borrowBooks = new BorrowBooks();
+        desktop.add(borrowBooks);
+        try { borrowBooks.setSelected(true); } catch (Exception ignored) {}
+    });
+}
+
+private void openReturn() {
+    runAsync(() -> {
+        returnBooks = new ReturnBooks();
+        desktop.add(returnBooks);
+        try { returnBooks.setSelected(true); } catch (Exception ignored) {}
+    });
+}
+
+private void openIssued() {
+    runAsync(() -> {
+        listIssued = new ListIssuedBooks();
+        desktop.add(listIssued);
+        try { listIssued.setSelected(true); } catch (Exception ignored) {}
+    });
+}
+
+private void openNotepad() {
+    runAsync(() -> {
+        try { Runtime.getRuntime().exec("notepad.exe"); } catch (Exception ignored) {}
+    });
+}
+
+private void openCalculator() {
+    runAsync(() -> {
+        try { Runtime.getRuntime().exec("calc.exe"); } catch (Exception ignored) {}
+    });
+}
+
+private void openChangePassword() {
+    runAsync(() -> {
+        changePassword = new ChangePassword();
+        desktop.add(changePassword);
+        try { changePassword.setSelected(true); } catch (Exception ignored) {}
+    });
+}
+
+private void openDeleteLibrarian() {
+    deleteUser = new DeleteLibrarian();
+}
+
+private void openAbout() {
+    runAsync(() -> {
+        JOptionPane.showMessageDialog(null, new About(), "About Library Management System", JOptionPane.PLAIN_MESSAGE);
+    });
+}
+
+private void handleExit() {
+    dispose();
+    System.exit(0);
+}
+
 }

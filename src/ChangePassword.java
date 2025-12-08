@@ -289,92 +289,16 @@ public class ChangePassword extends JInternalFrame {
 		 * taken from the JTextField[] and make the connection for database,   *
 		 * after that update the table in the database with the new value      *
 		 ***********************************************************************/
-		editButton.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent ae) {
-				//for checking if there is a missing information
-				if (isEditCorrect()) {
-                                    
-					Thread runner = new Thread() {
-						public void run() {
-                            pswd = new Password();
-                            String pd=new String(editTextField.getPassword());
-							//for checking if there is no same information in the database
-                            boolean userExit=pswd.connection("SELECT * FROM Login WHERE Password='" +pd+"'");
-                            //member.connection("SELECT * FROM Members WHERE ID = " + editTextField.getText());
-                            //int ID = member.getID();
-                            
-                            
-							if (userExit) {
-                            //if(ID==Integer.parseInt(editTextField.getText())){
-                                                                //String oldPassword = pswd.getPassword();
-								informationTextField[0].setText(pswd.getUsername());
-								/*informationTextField[1].setText(member.getName());
-								informationTextField[2].setText(member.getEmail());
-								informationTextField[3].setText(member.getMajor());
-								expiry_date.setDate(member.getValidUpto());*/
-								//informationPasswordField[0].setText(member.getPassword());
-								//informationPasswordField[1].setText(member.getPassword());
-							}
-							else {
-								JOptionPane.showMessageDialog(null, "Please, write a correct Password", "Error", JOptionPane.ERROR_MESSAGE);
-								editTextField.setText(null);
-								clearTextField();
-							}
-						}
-					};
-					runner.start();
-				}
-				else {
-					JOptionPane.showMessageDialog(null, "Please, write the old password", "Warning", JOptionPane.WARNING_MESSAGE);
-				}
-			}
-		});
+		editButton.addActionListener(ae -> handleEditPassword());
+
 
 		/***********************************************************************
 		 * for adding the action listener to the button,first the text will be *
 		 * taken from the JTextField[] and make the connection for database,   *
 		 * after that update the table in the database with the new value      *
 		 ***********************************************************************/
-		updateInformationButton.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent ae) {
-				//for checking if there is a missing information
-				if (isCorrect()) {
-					if (isPasswordCorrect()) {
-						Thread runner = new Thread() {
-							public void run() {
-                            /*Date expiryDate= new Date();
-                            expiryDate=expiry_date.getDate();
-                            Date presentDate=new Date();
-                            if(presentDate.before(expiryDate))
-                           {*/
-								pswd = new Password();
-                                /*member.connection("SELECT * FROM Members WHERE ID = " + data[0]);
-								int ID = member.getID();
-								if (Integer.parseInt(data[0]) != ID) {*/
-								//for updting the members database
-								pswd.update("UPDATE Login SET Username = '" + data[0] + "', Password = '" + data[1] + "' WHERE Username = '" + informationTextField[0].getText()+"'");
-								//for setting the array of JTextField to empty
-								//clearTextField();
-                                dispose();
-                                /*}
-                                else
-									JOptionPane.showMessageDialog(null, "Member is in the Library", "Error", JOptionPane.ERROR_MESSAGE);*/
-							//}
-                            /*else
-                                JOptionPane.showMessageDialog(null, "Expiry Date is invalid", "Warning", JOptionPane.WARNING_MESSAGE);*/
-                        }
-						};
-						runner.start();
-					}
-					//if the password is wrong
-					else
-						JOptionPane.showMessageDialog(null, "New password mismatch !", "Error", JOptionPane.ERROR_MESSAGE);
-				}
-				//if there is a missing data, then display Message Dialog
-				else
-					JOptionPane.showMessageDialog(null, "Please, complete the information", "Warning", JOptionPane.WARNING_MESSAGE);
-			}
-		});
+		updateInformationButton.addActionListener(ae -> handleUpdatePassword());
+
 		//for adding the action listener for the button to dispose the frame
 		OKButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ae) {
@@ -386,6 +310,75 @@ public class ChangePassword extends JInternalFrame {
 		//show the internal frame
 		pack();
 	}
+
+	// ------------------------ EDIT PASSWORD LOGIC ------------------------
+
+private void handleEditPassword() {
+    if (!isEditCorrect()) {
+        showWarning("Please, write the old password");
+        return;
+    }
+
+    Thread runner = new Thread(this::processEditPassword);
+    runner.start();
+}
+
+private void processEditPassword() {
+    pswd = new Password();
+    String oldPassword = new String(editTextField.getPassword());
+
+    boolean exists = pswd.connection("SELECT * FROM Login WHERE Password='" + oldPassword + "'");
+    if (!exists) {
+        showError("Please, write a correct Password");
+        editTextField.setText(null);
+        clearTextField();
+        return;
+    }
+
+    informationTextField[0].setText(pswd.getUsername());
+}
+
+
+// ------------------------ UPDATE PASSWORD LOGIC ------------------------
+
+private void handleUpdatePassword() {
+    if (!isCorrect()) {
+        showWarning("Please, complete the information");
+        return;
+    }
+
+    if (!isPasswordCorrect()) {
+        showError("New password mismatch !");
+        return;
+    }
+
+    Thread runner = new Thread(this::processUpdatePassword);
+    runner.start();
+}
+
+private void processUpdatePassword() {
+    pswd = new Password();
+
+    String updateQuery =
+            "UPDATE Login SET Username = '" + data[0] + "', Password = '" + data[1] +
+            "' WHERE Username = '" + informationTextField[0].getText() + "'";
+
+    pswd.update(updateQuery);
+
+    dispose();
+}
+
+
+// ------------------------ UTILITY ------------------------
+
+private void showWarning(String msg) {
+    JOptionPane.showMessageDialog(null, msg, "Warning", JOptionPane.WARNING_MESSAGE);
+}
+
+private void showError(String msg) {
+    JOptionPane.showMessageDialog(null, msg, "Error", JOptionPane.ERROR_MESSAGE);
+}
+
 
     /*class keyListener extends KeyAdapter {
 

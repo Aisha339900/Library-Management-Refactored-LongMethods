@@ -176,59 +176,8 @@ public class AddBooks extends JInternalFrame {
          * taken from the JTextField[] and make the connection for database,   *
          * after that update the table in the database with the new value      *
          ***********************************************************************/
-        insertInformationButton.addActionListener(new ActionListener() {
+        insertInformationButton.addActionListener(ae -> handleInsertAction());
 
-            public void actionPerformed(ActionEvent ae) {
-
-                //for checking if there is a missing information
-                if (isCorrect()) {
-                    Thread runner = new Thread() {
-
-                        public void run() {
-                            book = new Books();
-                            //for checking if there is no double information in the database
-                            //book.connection("SELECT BookID FROM Books WHERE ISBN = '" + data[7] + "'");
-                            book.connection("SELECT * FROM Books WHERE ISBN = '" + data[7] + "'");
-                            String ISBN = book.getISBN();
-                            if (!data[7].equalsIgnoreCase(ISBN)) {
-                                try{
-                                    String sql="INSERT INTO Books (Subject,Title,Author,Publisher,Copyright," +
-                                        "Edition,Pages,ISBN,NumberOfBooks,NumberOfAvailbleBooks,Library,Availble,ShelfNo) VALUES "+
-                                        " (?,?,?,?,?,?,?,?,?,?,?,?,?)";
-                                        Class.forName("org.gjt.mm.mysql.Driver");
-                                        Connection con=DriverManager.getConnection("jdbc:mysql://localhost:3306/Library","root","nielit");
-                                        PreparedStatement ps=con.prepareStatement(sql);
-                                        ps.setString(1, data[0]);
-                                        ps.setString(2, data[1]);
-                                        ps.setString(3, data[2]);
-                                        ps.setString(4, data[3]);                                        
-                                        ps.setInt(5, Integer.parseInt(data[4]));
-                                        ps.setInt(6,Integer.parseInt(data[5]));
-                                        ps.setInt(7, Integer.parseInt(data[6]));
-                                        ps.setString(8, data[7]);
-                                        ps.setInt(9, Integer.parseInt(data[8]));
-                                        ps.setInt(10, Integer.parseInt(data[8]));
-                                        ps.setString(11, data[9]);
-                                        ps.setBoolean(12, availble);
-                                        ps.setInt(13, Integer.parseInt(txtShelfNo.getText()));
-                                        ps.executeUpdate();      
-                                }catch(Exception ex){
-                                    JOptionPane.showMessageDialog(null, ex.toString());
-                                }
-                                       
-                                dispose();
-                            } else {
-                                JOptionPane.showMessageDialog(null, "The book is in the library", "Error", JOptionPane.ERROR_MESSAGE);
-                            }
-                        }
-                    };
-                    runner.start();
-                } //if there is a missing data, then display Message Dialog
-                else {
-                    JOptionPane.showMessageDialog(null, "Please, complete the information", "Warning", JOptionPane.WARNING_MESSAGE);
-                }
-            }
-        });
         //for adding the action listener for the button to dispose the frame
         OKButton.addActionListener(new ActionListener() {
 
@@ -242,6 +191,71 @@ public class AddBooks extends JInternalFrame {
         //show the internal frame
         pack();
     }
+    private void handleInsertAction() {
+    if (!isCorrect()) {
+        JOptionPane.showMessageDialog(null,
+                "Please, complete the information",
+                "Warning",
+                JOptionPane.WARNING_MESSAGE);
+        return;
+    }
+
+    Thread runner = new Thread(this::processInsert);
+    runner.start();
+}
+
+private void processInsert() {
+    book = new Books();
+    book.connection("SELECT * FROM Books WHERE ISBN = '" + data[7] + "'");
+    String isbn = book.getISBN();
+
+    if (bookExists(isbn)) {
+        JOptionPane.showMessageDialog(null,
+                "The book is in the library",
+                "Error",
+                JOptionPane.ERROR_MESSAGE);
+        return;
+    }
+
+    insertBookToDatabase();
+    dispose();
+}
+
+private boolean bookExists(String isbn) {
+    return data[7].equalsIgnoreCase(isbn);
+}
+
+private void insertBookToDatabase() {
+    try {
+        String sql = "INSERT INTO Books (Subject,Title,Author,Publisher,Copyright,"
+                + "Edition,Pages,ISBN,NumberOfBooks,NumberOfAvailbleBooks,Library,Availble,ShelfNo)"
+                + " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)";
+
+        Class.forName("org.gjt.mm.mysql.Driver");
+        Connection con = DriverManager.getConnection(
+                "jdbc:mysql://localhost:3306/Library", "root", "nielit");
+        PreparedStatement ps = con.prepareStatement(sql);
+
+        ps.setString(1, data[0]);
+        ps.setString(2, data[1]);
+        ps.setString(3, data[2]);
+        ps.setString(4, data[3]);
+        ps.setInt(5, Integer.parseInt(data[4]));
+        ps.setInt(6, Integer.parseInt(data[5]));
+        ps.setInt(7, Integer.parseInt(data[6]));
+        ps.setString(8, data[7]);
+        ps.setInt(9, Integer.parseInt(data[8]));
+        ps.setInt(10, Integer.parseInt(data[8]));
+        ps.setString(11, data[9]);
+        ps.setBoolean(12, availble);
+        ps.setInt(13, Integer.parseInt(txtShelfNo.getText()));
+
+        ps.executeUpdate();
+    } catch (Exception ex) {
+        JOptionPane.showMessageDialog(null, ex.toString());
+    }
+}
+
     class keyListener extends KeyAdapter {
 
         public void keyTyped(KeyEvent e) {
