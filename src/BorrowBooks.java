@@ -217,17 +217,16 @@ public class BorrowBooks extends JInternalFrame {
     }
 
     private void processBookBorrow() {
-    int available = book.getNumberOfAvailbleBooks();
-    int borrowed = 1 + book.getNumberOfBorrowedBooks();
-    int totalForMember = 1 + member.getNumberOfBooks();
+    int[] values = calculateBorrowValues();
+    int available = values[0];
+    int borrowed = values[1];
+    int totalForMember = values[2];
 
     if (!isBookAvailable(available)) return;
 
-    updateBook(available - 1, borrowed);
-    updateMember(totalForMember);
-    insertBorrowRecord();
-    dispose();
+    finalizeBorrow(available, borrowed, totalForMember);
 }
+
 
 
     private void updateBook(int available, int borrowed) {
@@ -301,6 +300,21 @@ private boolean isBookAvailable(int available) {
     }
     return true;
 }
+
+private int[] calculateBorrowValues() {
+    int available = book.getNumberOfAvailbleBooks();
+    int borrowed = 1 + book.getNumberOfBorrowedBooks();
+    int totalForMember = 1 + member.getNumberOfBooks();
+    return new int[]{available, borrowed, totalForMember};
+}
+
+private void finalizeBorrow(int available, int borrowed, int totalForMember) {
+    updateBook(available - 1, borrowed);
+    updateMember(totalForMember);
+    insertBorrowRecord();
+    dispose();
+}
+
 
 
 }
