@@ -82,41 +82,14 @@ public class AddMembers extends JInternalFrame {
 		return true;*/
 	}
 
-	//for checking the information from the text field
 	public boolean isCorrect() {
 		data = new String[6];
-		for (int i = 0; i < informationLabel.length; i++) {
-			if (i == 0) {
-				if (!informationTextField[i].getText().equals("")) {
-					data[i] = informationTextField[i].getText();
-				}
-				else
-					return false;
-			}
-			if (i == 1 || i == 2) {
-				//if (informationPasswordField[i - 1].getText().equals(""))
-                if (informationPasswordField[i-1].getPassword().length==0)
-					return false;
-			}
-			if (i == 3 || i == 4 || i == 5) {
-				if (!informationTextField[i - 2].getText().equals("")) {
-					data[i - 1] = informationTextField[i - 2].getText();
-				}
-				else
-					return false;
-			}
-            if(i==6)
-            {
-                if(!expiry_date.getText().equals(""))
-                {
-                data[i-1]=expiry_date.getText();
-                }
-                else
-                    return false;
-            }
-		}
-		return true;
+		return validateIdField()
+				&& validatePasswordFields()
+				&& validateTextFields()
+				&& validateExpiryDate();
 	}
+
 
 	//for setting the array of JTextField & JPasswordField to null
 	public void clearTextField() {
@@ -319,5 +292,43 @@ private void showError(String message) {
                  }
             }
     }//inner class closed
+
+	private boolean validateIdField() {
+    if (!informationTextField[0].getText().isEmpty()) {
+        data[0] = informationTextField[0].getText();
+        return true;
+    }
+    return false;
+}
+
+private boolean validatePasswordFields() {
+    for (int i = 0; i < 2; i++) {
+        if (informationPasswordField[i].getPassword().length == 0) {
+            return false;
+        }
+    }
+    return true;
+}
+
+private boolean validateTextFields() {
+    for (int i = 1; i <= 3; i++) {
+        if (!informationTextField[i].getText().isEmpty()) {
+            data[i + 1] = informationTextField[i].getText();
+        } else {
+            return false;
+        }
+    }
+    return true;
+}
+
+private boolean validateExpiryDate() {
+    if (!expiry_date.getText().isEmpty()) {
+        data[5] = expiry_date.getText();
+        return true;
+    }
+    return false;
+}
+
+
 
 }

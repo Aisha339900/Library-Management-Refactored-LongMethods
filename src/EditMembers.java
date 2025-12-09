@@ -264,26 +264,13 @@ public class EditMembers extends JInternalFrame {
     }
 
     public boolean isCorrect() {
+    data = new String[6];
+    return validateRegNo()
+            && validatePasswords()
+            && validateBasicFields()
+            && validateExpiryField();
+}
 
-        data = new String[6];
-
-        for (int i = 0; i < informationLabel.length; i++) {
-
-            if (i == 0 && !informationTextField[0].getText().equals("")) {
-                data[0] = informationTextField[0].getText();
-            } else if (i == 1 || i == 2) {
-                if (informationPasswordField[i - 1].getPassword().length == 0) return false;
-                data[1] = new String(informationPasswordField[0].getPassword());
-            } else if (i >= 3 && i <= 5) {
-                if (informationTextField[i - 2].getText().equals("")) return false;
-                data[i - 1] = informationTextField[i - 2].getText();
-            } else if (i == 6) {
-                if (expiry_date.getText().equals("")) return false;
-                data[5] = expiry_date.getText();
-            }
-        }
-        return true;
-    }
 
     public boolean isEditCorrect() {
         return !editTextField.getText().equals("");
@@ -335,4 +322,38 @@ public class EditMembers extends JInternalFrame {
             }
         }
     }
+	private boolean validateRegNo() {
+    String reg = informationTextField[0].getText();
+    if (reg.isEmpty()) return false;
+    data[0] = reg;
+    return true;
+}
+
+private boolean validatePasswords() {
+    char[] pass1 = informationPasswordField[0].getPassword();
+    char[] pass2 = informationPasswordField[1].getPassword();
+
+    if (pass1.length == 0 || pass2.length == 0) return false;
+    if (!Arrays.equals(pass1, pass2)) return false;
+
+    data[1] = new String(pass1);
+    return true;
+}
+
+private boolean validateBasicFields() {
+    for (int i = 1; i <= 3; i++) {
+        String value = informationTextField[i].getText();
+        if (value.isEmpty()) return false;
+        data[i + 1] = value;
+    }
+    return true;
+}
+
+private boolean validateExpiryField() {
+    String exp = expiry_date.getText();
+    if (exp.isEmpty()) return false;
+    data[5] = exp;
+    return true;
+}
+
 }

@@ -205,21 +205,10 @@ public class BorrowBooks extends JInternalFrame {
     }
 
     private void processBorrowRequest() {
+		if (!validateBeforeBorrowing()) return;
+		processBookBorrow();
+	}
 
-        if (!isReturnDateValid()) return;
-
-        initializeObjects();
-
-        if (isAlreadyBorrowedByMember()) {
-            showWarning("The book is already borrowed by this member");
-            clearTextField();
-            return;
-        }
-
-        if (!isBorrowerInfoValid()) return;
-
-        processBookBorrow();
-    }
 
     private void initializeObjects() {
         book = new Books();
@@ -228,20 +217,18 @@ public class BorrowBooks extends JInternalFrame {
     }
 
     private void processBookBorrow() {
-        int available = book.getNumberOfAvailbleBooks();
-        int borrowed = 1 + book.getNumberOfBorrowedBooks();
-        int totalForMember = 1 + member.getNumberOfBooks();
+    int available = book.getNumberOfAvailbleBooks();
+    int borrowed = 1 + book.getNumberOfBorrowedBooks();
+    int totalForMember = 1 + member.getNumberOfBooks();
 
-        if (available < 1) {
-            showWarning("The book is borrowed");
-            return;
-        }
+    if (!isBookAvailable(available)) return;
 
-        updateBook(available - 1, borrowed);
-        updateMember(totalForMember);
-        insertBorrowRecord();
-        dispose();
-    }
+    updateBook(available - 1, borrowed);
+    updateMember(totalForMember);
+    insertBorrowRecord();
+    dispose();
+}
+
 
     private void updateBook(int available, int borrowed) {
         String query = "UPDATE Books SET NumberOfAvailbleBooks=" + available +
@@ -291,4 +278,29 @@ public class BorrowBooks extends JInternalFrame {
             }
         }
     }
+
+	private boolean validateBeforeBorrowing() {
+
+    if (!isReturnDateValid()) return false;
+
+    initializeObjects();
+
+    if (isAlreadyBorrowedByMember()) {
+        showWarning("The book is already borrowed by this member");
+        clearTextField();
+        return false;
+    }
+
+    return isBorrowerInfoValid();
+}
+
+private boolean isBookAvailable(int available) {
+    if (available < 1) {
+        showWarning("The book is borrowed");
+        return false;
+    }
+    return true;
+}
+
+
 }
