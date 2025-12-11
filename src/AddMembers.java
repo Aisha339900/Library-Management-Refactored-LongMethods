@@ -1,204 +1,225 @@
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.util.Arrays;
 import java.util.Date;
+
 public class AddMembers extends JInternalFrame {
-	private JPanel northPanel = new JPanel();
-	private JLabel northLabel = new JLabel("MEMBER INFORMATION");
-	private JPanel centerPanel = new JPanel();
-	private JPanel informationLabelPanel = new JPanel();
-	private JLabel[] informationLabel = new JLabel[7];
-    private String[] informaionString = {" Reg. No: ", " The Password: ", " Rewrite the password: ",
-	                                     " The Name: ", " E-Mail: ", " Major: ", " Valid Upto: "};
-	private JPanel informationTextFieldPanel = new JPanel();
-	private JTextField[] informationTextField = new JTextField[4];
-	private JPasswordField[] informationPasswordField = new JPasswordField[2];
-	private JPanel insertInformationButtonPanel = new JPanel();
-	private JButton insertInformationButton = new JButton("Insert the Information");
-	private JPanel southPanel = new JPanel();
-	private JButton OKButton = new JButton("Exit");
-	private Members member;
-	private String[] data;
+
+    private final JLabel[] informationLabel = new JLabel[7];
+    private final JTextField[] informationTextField = new JTextField[4];
+    private final JPasswordField[] informationPasswordField = new JPasswordField[2];
+
+    private final String[] infoString = {
+            " Reg. No: ", " The Password: ", " Rewrite the password: ",
+            " The Name: ", " E-Mail: ", " Major: ", " Valid Upto: "
+    };
+
+    private final JButton insertInformationButton = new JButton("Insert the Information");
+    private final JButton OKButton = new JButton("Exit");
+
     private DateButton expiry_date;
-	public boolean isPasswordCorrect() {
-        if (Arrays.equals(informationPasswordField[0].getPassword(),informationPasswordField[1].getPassword()))
-            data[1] = new String(informationPasswordField[1].getPassword());
-        else if(!Arrays.equals(informationPasswordField[0].getPassword(),informationPasswordField[1].getPassword()))
-            return false;
-        return true;
-	}
-	public boolean isCorrect() {
-		data = new String[6];
-		return validateIdField()
-				&& validatePasswordFields()
-				&& validateTextFields()
-				&& validateExpiryDate();
-	}
-	public void clearTextField() {
-		for (int i = 0; i < informationLabel.length; i++) {
-			if (i == 0)
-				informationTextField[i].setText(null);
-			if (i == 1 || i == 2)
-				informationPasswordField[i - 1].setText(null);
-			if (i == 3 || i == 4 || i == 5)
-				informationTextField[i - 2].setText(null);
-		}
-	}
-	public AddMembers() {
-		super("Add Members", false, true, false, true);
-		setFrameIcon(new ImageIcon(ClassLoader.getSystemResource("images/Add16.gif")));
-		Container cp = getContentPane();
+    private Members member;
+    private String[] data;
+
+    public AddMembers() {
+        super("Add Members", false, true, false, true);
+        setFrameIcon(new ImageIcon(ClassLoader.getSystemResource("images/Add16.gif")));
+
         expiry_date = new DateButton();
         expiry_date.setForeground(Color.red);
-		northPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
-		northLabel.setFont(new Font("Tahoma", Font.BOLD, 14));
-		northPanel.add(northLabel);
-		cp.add("North", northPanel);
-		centerPanel.setLayout(new BorderLayout());
-		centerPanel.setBorder(BorderFactory.createTitledBorder("Add a new member:"));
-		informationLabelPanel.setLayout(new GridLayout(7, 1, 1, 1));
-		informationTextFieldPanel.setLayout(new GridLayout(7, 1, 1, 1));
-		for (int i = 0; i < informationLabel.length; i++) {
-			informationLabelPanel.add(informationLabel[i] = new JLabel(informaionString[i]));
-			informationLabel[i].setFont(new Font("Tahoma", Font.BOLD, 11));
-		}
-		centerPanel.add("West", informationLabelPanel);
-		for (int i = 0; i < informationLabel.length; i++) {
-			if (i == 1 || i == 2) {
-				informationTextFieldPanel.add(informationPasswordField[i - 1] = new JPasswordField(25));
-				informationPasswordField[i - 1].setFont(new Font("Tahoma", Font.PLAIN, 11));
-			}
-			if (i == 0) {
-				informationTextFieldPanel.add(informationTextField[i] = new JTextField(25));
-				informationTextField[i].setFont(new Font("Tahoma", Font.PLAIN, 11));
-                informationTextField[i].addKeyListener(new keyListener());
-			}
-			if (i == 3 || i == 4 || i == 5) {
-				informationTextFieldPanel.add(informationTextField[i - 2] = new JTextField(25));
-				informationTextField[i - 2].setFont(new Font("Tahoma", Font.PLAIN, 11));
-                }
-            if(i==6)
-            {
-                informationTextFieldPanel.add(expiry_date);
-            }
-		}
-		centerPanel.add("East", informationTextFieldPanel);
-		insertInformationButtonPanel.setLayout(new FlowLayout(FlowLayout.RIGHT));
-		insertInformationButton.setFont(new Font("Tahoma", Font.BOLD, 11));
-		insertInformationButtonPanel.add(insertInformationButton);
-		centerPanel.add("South", insertInformationButtonPanel);
-		cp.add("Center", centerPanel);
-		southPanel.setLayout(new FlowLayout(FlowLayout.RIGHT));
-		OKButton.setFont(new Font("Tahoma", Font.BOLD, 11));
-		southPanel.add(OKButton);
-		southPanel.setBorder(BorderFactory.createEtchedBorder());
-		cp.add("South", southPanel);
-		insertInformationButton.addActionListener(ae -> handleInsertMember());
-		OKButton.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent ae) {
-				dispose();
-			}
-		});
-		setVisible(true);
-		pack();
-	}
-	private boolean isExpiryDateValid(Date today, Date expiryDate) {
-    if (!today.before(expiryDate)) {
-        showWarning("Expiry Date is invalid");
-        return false;
+
+        buildNorthPanel();
+        buildCenterPanel();
+        buildSouthPanel();
+
+        insertInformationButton.addActionListener(ae -> handleInsertMember());
+        OKButton.addActionListener(ae -> dispose());
+
+        setVisible(true);
+        pack();
     }
-    return true;
-}
-	private void handleInsertMember() {
-    if (!isCorrect()) {
-        showWarning("Please, complete the information");
-        return;
+
+    /* ------------------------- GUI BUILDERS ------------------------- */
+
+    private void buildNorthPanel() {
+        JLabel northLabel = new JLabel("MEMBER INFORMATION");
+        northLabel.setFont(new Font("Tahoma", Font.BOLD, 14));
+        JPanel northPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        northPanel.add(northLabel);
+        add("North", northPanel);
     }
-    if (!isPasswordCorrect()) {
-        showError("The password is wrong");
-        return;
+
+    private void buildCenterPanel() {
+        JPanel centerPanel = new JPanel(new BorderLayout());
+        centerPanel.setBorder(BorderFactory.createTitledBorder("Add a new member:"));
+
+        JPanel labelPanel = new JPanel(new GridLayout(7, 1, 1, 1));
+        JPanel fieldPanel = new JPanel(new GridLayout(7, 1, 1, 1));
+
+        for (int i = 0; i < 7; i++) {
+            JLabel lbl = new JLabel(infoString[i]);
+            lbl.setFont(new Font("Tahoma", Font.BOLD, 11));
+            informationLabel[i] = lbl;
+            labelPanel.add(lbl);
+        }
+
+        fieldPanel.add(buildRegField());
+        fieldPanel.add(buildPasswordField(0));
+        fieldPanel.add(buildPasswordField(1));
+        fieldPanel.add(buildTextField(1));
+        fieldPanel.add(buildTextField(2));
+        fieldPanel.add(buildTextField(3));
+        fieldPanel.add(expiry_date);
+
+        JPanel insertPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        insertInformationButton.setFont(new Font("Tahoma", Font.BOLD, 11));
+        insertPanel.add(insertInformationButton);
+
+        centerPanel.add("West", labelPanel);
+        centerPanel.add("East", fieldPanel);
+        centerPanel.add("South", insertPanel);
+
+        add("Center", centerPanel);
     }
-    Thread runner = new Thread(this::processMemberInsert);
-    runner.start();
-}
-private void processMemberInsert() {
-    Date expiryDate = expiry_date.getDate();
-    Date today = new Date();
-    if (!isExpiryDateValid(today, expiryDate)) {
-        return;
+
+    private JTextField buildRegField() {
+        JTextField tf = new JTextField(25);
+        tf.setFont(new Font("Tahoma", Font.PLAIN, 11));
+        tf.addKeyListener(new NumericKeyListener());
+        informationTextField[0] = tf;
+        return tf;
     }
-    member = new Members();
-    member.connection("SELECT * FROM Members WHERE RegNo = " + data[0]);
-    if (isDuplicateMember()) {
-        showError("Member is in the Library");
-        return;
+
+    private JPasswordField buildPasswordField(int index) {
+        JPasswordField pf = new JPasswordField(25);
+        pf.setFont(new Font("Tahoma", Font.PLAIN, 11));
+        informationPasswordField[index] = pf;
+        return pf;
     }
-    insertMemberIntoDatabase();
-    dispose();
-}
-private boolean isDuplicateMember() {
-    int regNo = member.getRegNo();
-    return Integer.parseInt(data[0]) == regNo;
-}
-private void insertMemberIntoDatabase() {
-    String query = "INSERT INTO Members (RegNo,Password,Name,EMail,Major,ValidUpto) VALUES (" +
-            data[0] + ", '" + data[1] + "','" + data[2] + "','" +
-            data[3] + "','" + data[4] + "','" + data[5] + "')";
-    member.update(query);
-}
-private void showWarning(String message) {
-    JOptionPane.showMessageDialog(null, message, "Warning", JOptionPane.WARNING_MESSAGE);
-}
-private void showError(String message) {
-    JOptionPane.showMessageDialog(null, message, "Error", JOptionPane.ERROR_MESSAGE);
-}
-    class keyListener extends KeyAdapter {
+
+    private JTextField buildTextField(int index) {
+        JTextField tf = new JTextField(25);
+        tf.setFont(new Font("Tahoma", Font.PLAIN, 11));
+        informationTextField[index] = tf;
+        return tf;
+    }
+
+    private void buildSouthPanel() {
+        JPanel southPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        OKButton.setFont(new Font("Tahoma", Font.BOLD, 11));
+        southPanel.add(OKButton);
+        southPanel.setBorder(BorderFactory.createEtchedBorder());
+        add("South", southPanel);
+    }
+
+    /* ------------------------- VALIDATION ------------------------- */
+
+    private boolean isCorrect() {
+        data = new String[6];
+        return validateId() && validatePasswords() && validateFields() && validateExpiry();
+    }
+
+    private boolean validateId() {
+        String id = informationTextField[0].getText().trim();
+        if (id.isEmpty()) return false;
+        data[0] = id;
+        return true;
+    }
+
+    private boolean validatePasswords() {
+        char[] p1 = informationPasswordField[0].getPassword();
+        char[] p2 = informationPasswordField[1].getPassword();
+
+        if (p1.length == 0 || p2.length == 0) return false;
+        if (!Arrays.equals(p1, p2)) return false;
+
+        data[1] = new String(p1);
+        return true;
+    }
+
+    private boolean validateFields() {
+        for (int i = 1; i <= 3; i++) {
+            String text = informationTextField[i].getText().trim();
+            if (text.isEmpty()) return false;
+            data[i + 1] = text;
+        }
+        return true;
+    }
+
+    private boolean validateExpiry() {
+        String exp = expiry_date.getText().trim();
+        if (exp.isEmpty()) return false;
+        data[5] = exp;
+        return true;
+    }
+
+    /* ------------------------- ACTION LOGIC ------------------------- */
+
+    private void handleInsertMember() {
+        if (!isCorrect()) {
+            showWarning("Please, complete the information");
+            return;
+        }
+        if (!validatePasswords()) {
+            showError("The password is wrong");
+            return;
+        }
+        new Thread(this::processInsert).start();
+    }
+
+    private void processInsert() {
+        Date today = new Date();
+        Date expiry = expiry_date.getDate();
+        if (!today.before(expiry)) {
+            showWarning("Expiry Date is invalid");
+            return;
+        }
+
+        member = new Members();
+        member.connection("SELECT * FROM Members WHERE RegNo = " + data[0]);
+
+        if (Integer.parseInt(data[0]) == member.getRegNo()) {
+            showError("Member is in the Library");
+            return;
+        }
+
+        insertMember();
+        dispose();
+    }
+
+    private void insertMember() {
+        String q = "INSERT INTO Members (RegNo,Password,Name,EMail,Major,ValidUpto) VALUES ("
+                + data[0] + ", '" + data[1] + "','" + data[2] + "','" + data[3] + "','"
+                + data[4] + "','" + data[5] + "')";
+        member.update(q);
+    }
+
+    /* ------------------------- UI HELPERS ------------------------- */
+
+    private void showWarning(String msg) {
+        JOptionPane.showMessageDialog(null, msg, "Warning", JOptionPane.WARNING_MESSAGE);
+    }
+
+    private void showError(String msg) {
+        JOptionPane.showMessageDialog(null, msg, "Error", JOptionPane.ERROR_MESSAGE);
+    }
+
+    /* ------------------------- KEY LISTENER ------------------------- */
+
+    class NumericKeyListener extends KeyAdapter {
         public void keyTyped(KeyEvent e) {
-                char c = e.getKeyChar();
-                if (!(Character.isDigit(c) ||
-                        (c == KeyEvent.VK_BACK_SPACE) ||
-                        (c == KeyEvent.VK_ENTER) ||
-                        (c == KeyEvent.VK_DELETE))) {
-                    getToolkit().beep();
-                    JOptionPane.showMessageDialog(null, "This Field Only Accept Integer Number", "WARNING",JOptionPane.DEFAULT_OPTION);
-                    e.consume();
-                 }
+            char c = e.getKeyChar();
+            if (!Character.isDigit(c) && c != KeyEvent.VK_BACK_SPACE
+                    && c != KeyEvent.VK_ENTER && c != KeyEvent.VK_DELETE) {
+                Toolkit.getDefaultToolkit().beep();
+                JOptionPane.showMessageDialog(null,
+                        "This Field Only Accept Integer Number",
+                        "WARNING",
+                        JOptionPane.DEFAULT_OPTION);
+                e.consume();
             }
-    }
-	private boolean validateIdField() {
-    if (!informationTextField[0].getText().isEmpty()) {
-        data[0] = informationTextField[0].getText();
-        return true;
-    }
-    return false;
-}
-private boolean validatePasswordFields() {
-    for (int i = 0; i < 2; i++) {
-        if (informationPasswordField[i].getPassword().length == 0) {
-            return false;
         }
     }
-    return true;
-}
-private boolean validateTextFields() {
-    for (int i = 1; i <= 3; i++) {
-        if (!informationTextField[i].getText().isEmpty()) {
-            data[i + 1] = informationTextField[i].getText();
-        } else {
-            return false;
-        }
-    }
-    return true;
-}
-private boolean validateExpiryDate() {
-    if (!expiry_date.getText().isEmpty()) {
-        data[5] = expiry_date.getText();
-        return true;
-    }
-    return false;
-}
 }

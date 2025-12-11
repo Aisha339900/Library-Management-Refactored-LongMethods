@@ -1,120 +1,165 @@
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+
 public class RemoveBooks extends JInternalFrame {
-    private JPanel northPanel = new JPanel();
-    private JLabel title = new JLabel("BOOK INFORMATION");
-    private JPanel centerPanel = new JPanel();
-    private JPanel removePanel = new JPanel();
-    private JLabel removeLabel = new JLabel(" Write the Book ID: ");
-    private JTextField removeTextField = new JTextField();
-    private int data;
-    private JPanel removeMemberPanel = new JPanel();
-    private JButton removeButton = new JButton("Remove");
-    private JPanel southPanel = new JPanel();
-    private JButton exitButton = new JButton("Exit");
+
+    private final JTextField bookIdField = new JTextField();
+    private final JButton removeButton = new JButton("Remove");
+    private final JButton exitButton = new JButton("Exit");
+
     private Books book;
-    private boolean availble;
-    public boolean isCorrect() {
-        if (!removeTextField.getText().equals("")) {
-            data = Integer.parseInt(removeTextField.getText());
-            return true;
-        }
-        return false;
-    }
+    private int bookId;
+
     public RemoveBooks() {
         super("Remove Books", false, true, false, true);
         setFrameIcon(new ImageIcon(ClassLoader.getSystemResource("images/Delete16.gif")));
-        Container cp = getContentPane();
-        northPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
-        title.setFont(new Font("Tahoma", Font.BOLD, 14));
-        northPanel.add(title);
-        cp.add("North", northPanel);
-        centerPanel.setLayout(new BorderLayout());
-        removePanel.setLayout(new GridLayout(1, 2, 1, 1));
-        removePanel.add(removeLabel);
-        removePanel.add(removeTextField);
-        removeTextField.addKeyListener(new keyListener());
-        centerPanel.add("Center", removePanel);
-        removeMemberPanel.setLayout(new FlowLayout(FlowLayout.RIGHT));
-        removeMemberPanel.add(removeButton);
-        centerPanel.add("South", removeMemberPanel);
-        centerPanel.setBorder(BorderFactory.createTitledBorder("Remove a book:"));
-        cp.add("Center", centerPanel);
-        removeLabel.setFont(new Font("Tahoma", Font.BOLD, 11));
-        removeTextField.setFont(new Font("Tahoma", Font.PLAIN, 11));
-        exitButton.setFont(new Font("Tahoma", Font.BOLD, 11));
-        removeButton.setFont(new Font("Tahoma", Font.BOLD, 11));
-        southPanel.setLayout(new FlowLayout(FlowLayout.RIGHT));
-        southPanel.add(exitButton);
-        southPanel.setBorder(BorderFactory.createEtchedBorder());
-        cp.add("South", southPanel);
-        removeButton.addActionListener(e -> handleRemoveAction());
+
+        buildNorth();
+        buildCenter();
+        buildSouth();
+
+        removeButton.addActionListener(e -> handleRemove());
         exitButton.addActionListener(e -> dispose());
+
         setVisible(true);
         pack();
     }
-    private void handleRemoveAction() {
-        if (!isCorrect()) {
-            showWarning("Please, complete the information");
+
+    /* --------------------- UI BUILD --------------------- */
+
+    private void buildNorth() {
+        JLabel title = new JLabel("BOOK INFORMATION");
+        title.setFont(new Font("Tahoma", Font.BOLD, 14));
+        JPanel north = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        north.add(title);
+        add("North", north);
+    }
+
+    private void buildCenter() {
+        JLabel lbl = new JLabel(" Write the Book ID:");
+        lbl.setFont(new Font("Tahoma", Font.BOLD, 11));
+
+        bookIdField.setFont(new Font("Tahoma", Font.PLAIN, 11));
+        bookIdField.addKeyListener(new DigitOnly());
+
+        JPanel input = new JPanel(new GridLayout(1, 2, 5, 5));
+        input.add(lbl);
+        input.add(bookIdField);
+
+        JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        removeButton.setFont(new Font("Tahoma", Font.BOLD, 11));
+        btnPanel.add(removeButton);
+
+        JPanel center = new JPanel(new BorderLayout());
+        center.setBorder(BorderFactory.createTitledBorder("Remove a book:"));
+        center.add(input, BorderLayout.CENTER);
+        center.add(btnPanel, BorderLayout.SOUTH);
+
+        add("Center", center);
+    }
+
+    private void buildSouth() {
+        exitButton.setFont(new Font("Tahoma", Font.BOLD, 11));
+        JPanel south = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        south.add(exitButton);
+        add("South", south);
+    }
+
+    /* --------------------- BUSINESS LOGIC --------------------- */
+
+    private boolean isValidInput() {
+        try {
+            bookId = Integer.parseInt(bookIdField.getText().trim());
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    private void handleRemove() {
+        if (!isValidInput()) {
+            warn("Please enter a valid Book ID.");
             return;
         }
-        Thread runner = new Thread(this::processRemoval);
-        runner.start();
+        new Thread(this::processRemoval).start();
     }
+
     private void processRemoval() {
         book = new Books();
-        book.connection("SELECT * FROM Books WHERE BookID =" + data);
-        int bookID = book.getBookID();
-        if (bookID < 1) {
-            showError("The BookID is wrong!");
+        book.connection("SELECT * FROM Books WHERE BookID = " + bookId);
+
+        if (book.getBookID() < 1) {
+            error("The BookID is incorrect!");
             clearField();
             return;
         }
-        int totalBooks = book.getNumberOfBooks();
-        int availableBooks = book.getNumberOfAvailbleBooks();
-        if (availableBooks < 1) {
-            showError("Book can't be deleted, as it is already borrowed");
+
+        int total = book.getNumberOfBooks();
+        int available = book.getNumberOfAvailbleBooks();
+
+        if (available < 1) {
+            error("Book cannot be deleted — it is currently borrowed.");
             clearField();
             return;
         }
-        if (availableBooks == totalBooks) {
-            deleteBook();
-        } else {
-            updateBookCount(totalBooks, availableBooks);
-        }
+
+        if (available == total) deleteBook();
+        else updateBookCount(total, available);
+
         dispose();
     }
+
     private void deleteBook() {
-        book.update("DELETE FROM Books WHERE BookID =" + data);
+        book.update("DELETE FROM Books WHERE BookID = " + bookId);
     }
-    private void updateBookCount(int totalBooks, int availableBooks) {
-        int newTotal = totalBooks - 1;
-        int newAvailable = availableBooks - 1;
-        availble = newAvailable > 0;
-        String query = "UPDATE Books SET NumberOfBooks =" + newTotal +
-                ", NumberOfAvailbleBooks=" + newAvailable +
-                ", Availble=" + availble +
-                " WHERE BookID =" + data;
+
+    private void updateBookCount(int total, int available) {
+        int newTotal = total - 1;
+        int newAvail = available - 1;
+        boolean availFlag = newAvail > 0;
+
+        String query =
+                "UPDATE Books SET NumberOfBooks=" + newTotal +
+                        ", NumberOfAvailbleBooks=" + newAvail +
+                        ", Availble=" + availFlag +
+                        " WHERE BookID=" + bookId;
+
         book.update(query);
     }
-    private void showWarning(String msg) {
+
+    /* --------------------- HELPERS --------------------- */
+
+    private void warn(String msg) {
         JOptionPane.showMessageDialog(null, msg, "Warning", JOptionPane.WARNING_MESSAGE);
     }
-    private void showError(String msg) {
+
+    private void error(String msg) {
         JOptionPane.showMessageDialog(null, msg, "Error", JOptionPane.ERROR_MESSAGE);
     }
+
     private void clearField() {
-        removeTextField.setText(null);
+        bookIdField.setText("");
     }
-    class keyListener extends KeyAdapter {
+
+    /* --------------------- KEY LISTENER --------------------- */
+
+    private static class DigitOnly extends KeyAdapter {
         public void keyTyped(KeyEvent e) {
             char c = e.getKeyChar();
-            if (!(Character.isDigit(c) ||
-                    c == KeyEvent.VK_BACK_SPACE ||
-                    c == KeyEvent.VK_ENTER ||
-                    c == KeyEvent.VK_DELETE)) {
-                getToolkit().beep();
-                JOptionPane.showMessageDialog(null,
-                        "This Field Only Accept Integer Number",
-                        "WARNING", JOptionPane.DEFAULT_OPTION);
+            if (!Character.isDigit(c) &&
+                    c != KeyEvent.VK_BACK_SPACE &&
+                    c != KeyEvent.VK_DELETE &&
+                    c != KeyEvent.VK_ENTER) {
+
+                Toolkit.getDefaultToolkit().beep();
+                JOptionPane.showMessageDialog(
+                        null,
+                        "This Field Only Accepts Integer Numbers",
+                        "WARNING",
+                        JOptionPane.DEFAULT_OPTION
+                );
                 e.consume();
             }
         }

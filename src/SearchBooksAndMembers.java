@@ -1,186 +1,234 @@
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+
 public class SearchBooksAndMembers extends JInternalFrame {
-    private JPanel northPanel = new JPanel();
-    private JLabel title = new JLabel("Search for Books and Members");
-    private JPanel center = new JPanel();
-    private JPanel centerBooksPanel = new JPanel();
-    private JPanel searchBooksPanel = new JPanel();
-    private JPanel searchBooksButtonPanel = new JPanel();
-    private JLabel searchBooksLabel = new JLabel(" Search by: ");
-    private JComboBox searchBooksTypes;
-    private String[] booksTypes = {"BookID", "Subject", "Title", "Author", "Publisher", "ISBN"};
-    private JLabel booksKey = new JLabel(" Write the Keyword: ");
-    private JTextField booksKeyTextField = new JTextField();
-    private JButton searchBooksButton = new JButton("Search");
-    private JPanel centerMembersPanel = new JPanel();
-    private JPanel searchMembersPanel = new JPanel();
-    private JPanel searchMembersButtonPanel = new JPanel();
-    private JLabel searchMembersLabel = new JLabel(" Search by: ");
-    private JComboBox searchMembersTypes;
-    private String[] membersTypes = {"MemberID", "Name", "EMail", "Major"};
-    private JLabel membersKey = new JLabel(" Write the Keyword: ");
-    private JTextField membersKeyTextField = new JTextField();
-    private JButton searchMembersButton = new JButton("Search");
-    private JPanel southPanel = new JPanel();
-    private JButton cancelButton = new JButton("Cancel");
-    private String[] booksData;
-    private String[] membersData;
-    private ListSearchBooks listBooks;
-    private ListSearchMembers listMembers;
+
+    private final JTextField bookKeyField = new JTextField();
+    private final JTextField memberKeyField = new JTextField();
+
+    private final JButton searchBooksButton = new JButton("Search");
+    private final JButton searchMembersButton = new JButton("Search");
+    private final JButton cancelButton = new JButton("Cancel");
+
+    private final JComboBox<String> bookTypeBox =
+            new JComboBox<>(new String[]{"BookID", "Subject", "Title", "Author", "Publisher", "ISBN"});
+
+    private final JComboBox<String> memberTypeBox =
+            new JComboBox<>(new String[]{"MemberID", "Name", "EMail", "Major"});
+
     private Books book;
     private Members member;
+
     public SearchBooksAndMembers() {
         super("Search", false, true, false, true);
         setFrameIcon(new ImageIcon(ClassLoader.getSystemResource("images/Find16.gif")));
-        Container cp = getContentPane();
-        buildNorth(cp);
-        buildCenter(cp);
-        buildSouth(cp);
+
+        buildNorth();
+        buildCenter();
+        buildSouth();
         attachListeners();
+
         setVisible(true);
         pack();
     }
-    private void buildNorth(Container cp) {
-        northPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
+
+    /* ------------------------ NORTH ------------------------ */
+
+    private void buildNorth() {
+        JLabel title = new JLabel("Search for Books and Members");
         title.setFont(new Font("Tahoma", Font.BOLD, 14));
-        northPanel.add(title);
-        cp.add("North", northPanel);
+
+        JPanel north = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        north.add(title);
+        add("North", north);
     }
-    private void buildCenter(Container cp) {
-        center.setLayout(new BorderLayout());
-        buildBooksPanel();
-        buildMembersPanel();
-        cp.add("Center", center);
+
+    /* ------------------------ CENTER ------------------------ */
+
+    private void buildCenter() {
+        JPanel center = new JPanel(new BorderLayout());
+
+        center.add(buildBooksPanel(), BorderLayout.WEST);
+        center.add(buildMembersPanel(), BorderLayout.EAST);
+
+        add("Center", center);
     }
-    private void buildBooksPanel() {
-        centerBooksPanel.setLayout(new BorderLayout());
-        searchBooksPanel.setLayout(new GridLayout(2, 2, 1, 1));
-        searchBooksPanel.add(searchBooksLabel);
-        searchBooksPanel.add(searchBooksTypes = new JComboBox(booksTypes));
-        searchBooksPanel.add(booksKey);
-        searchBooksPanel.add(booksKeyTextField);
-        booksKeyTextField.addKeyListener(new BooksKeyListener());
-        centerBooksPanel.add("North", searchBooksPanel);
-        searchBooksButtonPanel.setLayout(new FlowLayout(FlowLayout.RIGHT));
-        searchBooksButtonPanel.add(searchBooksButton);
-        centerBooksPanel.add("South", searchBooksButtonPanel);
-        centerBooksPanel.setBorder(BorderFactory.createTitledBorder("Search for books:"));
-        center.add("West", centerBooksPanel);
+
+    private JPanel buildBooksPanel() {
+        JPanel p = new JPanel(new BorderLayout());
+        p.setBorder(BorderFactory.createTitledBorder("Search for books:"));
+
+        JPanel form = new JPanel(new GridLayout(2, 2, 4, 4));
+        JLabel lblType = new JLabel(" Search by: ");
+        JLabel lblKey = new JLabel(" Keyword: ");
+
+        bookKeyField.addKeyListener(new DigitListener(() ->
+                bookTypeBox.getSelectedItem().equals("BookID")));
+
+        form.add(lblType);
+        form.add(bookTypeBox);
+        form.add(lblKey);
+        form.add(bookKeyField);
+
+        JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        btnPanel.add(searchBooksButton);
+
+        p.add(form, BorderLayout.NORTH);
+        p.add(btnPanel, BorderLayout.SOUTH);
+
+        return p;
     }
-    private void buildMembersPanel() {
-        centerMembersPanel.setLayout(new BorderLayout());
-        searchMembersPanel.setLayout(new GridLayout(2, 2, 1, 1));
-        searchMembersPanel.add(searchMembersLabel);
-        searchMembersPanel.add(searchMembersTypes = new JComboBox(membersTypes));
-        searchMembersPanel.add(membersKey);
-        searchMembersPanel.add(membersKeyTextField);
-        membersKeyTextField.addKeyListener(new MembersKeyListener());
-        centerMembersPanel.add("North", searchMembersPanel);
-        searchMembersButtonPanel.setLayout(new FlowLayout(FlowLayout.RIGHT));
-        searchMembersButtonPanel.add(searchMembersButton);
-        centerMembersPanel.add("South", searchMembersButtonPanel);
-        centerMembersPanel.setBorder(BorderFactory.createTitledBorder("Search for members:"));
-        center.add("East", centerMembersPanel);
+
+    private JPanel buildMembersPanel() {
+        JPanel p = new JPanel(new BorderLayout());
+        p.setBorder(BorderFactory.createTitledBorder("Search for members:"));
+
+        JPanel form = new JPanel(new GridLayout(2, 2, 4, 4));
+        JLabel lblType = new JLabel(" Search by: ");
+        JLabel lblKey = new JLabel(" Keyword: ");
+
+        memberKeyField.addKeyListener(new DigitListener(() ->
+                memberTypeBox.getSelectedItem().equals("MemberID")));
+
+        form.add(lblType);
+        form.add(memberTypeBox);
+        form.add(lblKey);
+        form.add(memberKeyField);
+
+        JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        btnPanel.add(searchMembersButton);
+
+        p.add(form, BorderLayout.NORTH);
+        p.add(btnPanel, BorderLayout.SOUTH);
+
+        return p;
     }
-    private void buildSouth(Container cp) {
-        southPanel.setLayout(new FlowLayout(FlowLayout.RIGHT));
-        southPanel.add(cancelButton);
-        southPanel.setBorder(BorderFactory.createEtchedBorder());
-        cp.add("South", southPanel);
+
+    /* ------------------------ SOUTH ------------------------ */
+
+    private void buildSouth() {
+        JPanel south = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        south.add(cancelButton);
+        add("South", south);
     }
-    private boolean isBooksDataCorrect() {
-        booksData = new String[2];
-        booksData[0] = searchBooksTypes.getSelectedItem().toString();
-        String keyword = booksKeyTextField.getText();
-        if (keyword.isEmpty()) return false;
-        booksData[1] = booksData[0].equals("BookID") ? keyword : "'%" + keyword + "%'";
-        return true;
-    }
-    private boolean isMembersDataCorrect() {
-        membersData = new String[2];
-        membersData[0] = searchMembersTypes.getSelectedItem().toString();
-        String keyword = membersKeyTextField.getText();
-        if (keyword.isEmpty()) return false;
-        membersData[1] = membersData[0].equals("MemberID") ? keyword : "'%" + keyword + "%'";
-        return true;
-    }
+
+    /* ------------------------ LISTENERS ------------------------ */
+
     private void attachListeners() {
-        searchBooksButton.addActionListener(e -> handleBooksSearch());
-        searchMembersButton.addActionListener(e -> handleMembersSearch());
+        searchBooksButton.addActionListener(e -> handleBookSearch());
+        searchMembersButton.addActionListener(e -> handleMemberSearch());
         cancelButton.addActionListener(e -> dispose());
     }
-    private void handleBooksSearch() {
-        if (!isBooksDataCorrect()) {
-            warn("Please, complete the information");
+
+    /* ------------------------ SEARCH LOGIC ------------------------ */
+
+    private boolean prepareBookSearch(String[] data) {
+        data[0] = bookTypeBox.getSelectedItem().toString();
+        String key = bookKeyField.getText().trim();
+        if (key.isEmpty()) return false;
+        data[1] = data[0].equals("BookID") ? key : "'%" + key + "%'";
+        return true;
+    }
+
+    private boolean prepareMemberSearch(String[] data) {
+        data[0] = memberTypeBox.getSelectedItem().toString();
+        String key = memberKeyField.getText().trim();
+        if (key.isEmpty()) return false;
+        data[1] = data[0].equals("MemberID") ? key : "'%" + key + "%'";
+        return true;
+    }
+
+    private void handleBookSearch() {
+        String[] data = new String[2];
+        if (!prepareBookSearch(data)) {
+            warn("Please complete the information");
             return;
         }
+
+        String checkQuery = "SELECT * FROM Books WHERE " + data[0] + " LIKE " + data[1];
+        String listQuery =
+                "SELECT BookID, Subject, Title, Author, Publisher, Copyright,"
+                        + "Edition, Pages, NumberOfBooks, ISBN, Library, Availble, ShelfNo "
+                        + "FROM Books WHERE " + data[0] + " LIKE " + data[1];
+
         book = new Books();
-        String bookQuery = "SELECT * FROM Books WHERE " + booksData[0] + " LIKE " + booksData[1];
-        String listQuery = "SELECT BookID, Subject, Title, Author, Publisher," +
-                "Copyright, Edition, Pages, NumberOfBooks, ISBN, Library, Availble, ShelfNo " +
-                "FROM Books WHERE " + booksData[0] + " LIKE " + booksData[1];
-        book.connection(bookQuery);
-        if (book.getBookID() != 0) {
-            listBooks = new ListSearchBooks(listQuery);
-            openList(listBooks);
-        } else {
+        book.connection(checkQuery);
+
+        if (book.getBookID() == 0) {
             warn("No Match(es)");
-            booksKeyTextField.setText(null);
-        }
-    }
-    private void handleMembersSearch() {
-        if (!isMembersDataCorrect()) {
-            warn("Please, complete the information");
+            bookKeyField.setText("");
             return;
         }
-        member = new Members();
-        String query = "SELECT * FROM Members WHERE " + membersData[0] + " LIKE " + membersData[1];
-        String listQuery = "SELECT MemberID, RegNo, Name, EMail, Major, ValidUpto FROM Members WHERE " +
-                membersData[0] + " LIKE " + membersData[1];
-        member.connection(query);
-        if (member.getMemberID() != 0) {
-            listMembers = new ListSearchMembers(listQuery);
-            openList(listMembers);
-        } else {
-            warn("No Match(es)");
-            membersKeyTextField.setText(null);
-        }
+
+        openList(new ListSearchBooks(listQuery));
     }
+
+    private void handleMemberSearch() {
+        String[] data = new String[2];
+        if (!prepareMemberSearch(data)) {
+            warn("Please complete the information");
+            return;
+        }
+
+        String checkQuery = "SELECT * FROM Members WHERE " + data[0] + " LIKE " + data[1];
+        String listQuery = 
+                "SELECT MemberID, RegNo, Name, EMail, Major, ValidUpto "
+                        + "FROM Members WHERE " + data[0] + " LIKE " + data[1];
+
+        member = new Members();
+        member.connection(checkQuery);
+
+        if (member.getMemberID() == 0) {
+            warn("No Match(es)");
+            memberKeyField.setText("");
+            return;
+        }
+
+        openList(new ListSearchMembers(listQuery));
+    }
+
     private void openList(JInternalFrame frame) {
         getParent().add(frame);
         try { frame.setSelected(true); } catch (Exception ignored) {}
         dispose();
     }
+
+    /* ------------------------ HELPERS ------------------------ */
+
     private void warn(String msg) {
         JOptionPane.showMessageDialog(null, msg, "Warning", JOptionPane.WARNING_MESSAGE);
     }
-    class BooksKeyListener extends KeyAdapter {
+
+    /* ------------------------ DIGIT LISTENER ------------------------ */
+
+    private static class DigitListener extends KeyAdapter {
+        private final ValidationRule rule;
+
+        DigitListener(ValidationRule rule) {
+            this.rule = rule;
+        }
+
         public void keyTyped(KeyEvent e) {
-            if (searchBooksTypes.getSelectedItem().equals("BookID")) {
-                validateDigitOnly(e);
+            if (!rule.shouldValidate()) return;
+
+            char c = e.getKeyChar();
+            if (!Character.isDigit(c) &&
+                    c != KeyEvent.VK_BACK_SPACE &&
+                    c != KeyEvent.VK_DELETE &&
+                    c != KeyEvent.VK_ENTER) {
+
+                Toolkit.getDefaultToolkit().beep();
+                JOptionPane.showMessageDialog(null,
+                        "This Field Only Accepts Integer Numbers",
+                        "WARNING", JOptionPane.WARNING_MESSAGE);
+                e.consume();
             }
         }
     }
-    class MembersKeyListener extends KeyAdapter {
-        public void keyTyped(KeyEvent e) {
-            if (searchMembersTypes.getSelectedItem().equals("MemberID")) {
-                validateDigitOnly(e);
-            }
-        }
-    }
-    private void validateDigitOnly(KeyEvent e) {
-        char c = e.getKeyChar();
-        if (!Character.isDigit(c) &&
-            c != KeyEvent.VK_BACK_SPACE &&
-            c != KeyEvent.VK_DELETE &&
-            c != KeyEvent.VK_ENTER) {
-            getToolkit().beep();
-            JOptionPane.showMessageDialog(null,
-                    "This Field Only Accepts Integer Number",
-                    "WARNING", JOptionPane.WARNING_MESSAGE);
-            e.consume();
-        }
+
+    private interface ValidationRule {
+        boolean shouldValidate();
     }
 }

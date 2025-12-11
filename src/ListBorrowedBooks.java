@@ -4,107 +4,106 @@ import java.awt.*;
 import java.awt.print.PrinterException;
 import java.awt.print.PrinterJob;
 import java.sql.SQLException;
+
 public class ListBorrowedBooks extends JInternalFrame {
-    private JPanel northPanel = new JPanel();
-    private JPanel centerPanel = new JPanel();
-    private JLabel label = new JLabel("THE LIST FOR THE BORROWED BOOKS");
-    private JButton printButton;
+
     private JTable table;
-    private JScrollPane scrollPane;
-    private TableColumn column;
     private ResultSetTableModel tableModel;
+
     private static final String JDBC_DRIVER = "org.gjt.mm.mysql.Driver";
     private static final String DATABASE_URL = "jdbc:mysql://localhost:3306/Library";
     private static final String USER_NAME = "root";
     private static final String PASSWORD = "nielit";
-    private static final String DEFAULT_QUERY =
-            "SELECT BookID, Subject, Title, Author, Publisher, Copyright, Edition, " +
-            "Pages, ISBN, Library FROM Books WHERE NumberOfBorrowedBooks > 0";
+    private static final String QUERY =
+            "SELECT BookID, Subject, Title, Author, Publisher, Copyright,"
+            + "Edition, Pages, ISBN, Library FROM Books WHERE NumberOfBorrowedBooks > 0";
+
     public ListBorrowedBooks() {
         super("Borrowed Books", false, true, false, true);
         setFrameIcon(new ImageIcon(ClassLoader.getSystemResource("images/List16.gif")));
-        initDatabase();
-        initTable();
-        initNorthPanel();
-        initCenterPanel();
-        initPrintButton();
+
+        initModel();
+        initUI();
+
         setVisible(true);
         pack();
     }
-    private void initDatabase() {
+
+    /* ----------------------- MODEL ----------------------- */
+
+    private void initModel() {
         try {
             tableModel = new ResultSetTableModel(
-                    JDBC_DRIVER, DATABASE_URL, USER_NAME, PASSWORD, DEFAULT_QUERY
-            );
-            tableModel.setQuery(DEFAULT_QUERY);
-        } catch (ClassNotFoundException | SQLException e) {
-            System.out.println(e.toString());
+                    JDBC_DRIVER, DATABASE_URL, USER_NAME, PASSWORD, QUERY);
+            tableModel.setQuery(QUERY);
+        } catch (ClassNotFoundException | SQLException ex) {
+            System.out.println("DB Error: " + ex.getMessage());
         }
     }
-    private void initTable() {
-        table = new JTable(tableModel);
-        table.setPreferredScrollableViewportSize(new Dimension(990, 200));
-        table.setFont(new Font("Tahoma", Font.PLAIN, 12));
-        scrollPane = new JScrollPane(table);
-        setupColumnWidths();
-    }
-    private void initNorthPanel() {
-        label.setFont(new Font("Tahoma", Font.BOLD, 14));
-        northPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
-        northPanel.add(label);
-    }
-    private void initCenterPanel() {
+
+    /* ------------------------ UI ------------------------ */
+
+    private void initUI() {
         Container cp = getContentPane();
-        centerPanel.setLayout(new BorderLayout());
-        centerPanel.setBorder(BorderFactory.createTitledBorder("Borrowed books:"));
-        cp.add("North", northPanel);
-        cp.add("Center", centerPanel);
-        centerPanel.add(scrollPane, BorderLayout.CENTER);
+
+        JLabel title = new JLabel("THE LIST FOR THE BORROWED BOOKS");
+        title.setFont(new Font("Tahoma", Font.BOLD, 14));
+
+        JPanel north = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        north.add(title);
+        cp.add("North", north);
+
+        table = new JTable(tableModel);
+        table.setPreferredScrollableViewportSize(new Dimension(950, 220));
+        table.setFont(new Font("Tahoma", Font.PLAIN, 12));
+        setColumnWidths();
+
+        JScrollPane scroll = new JScrollPane(table);
+
+        JButton printBtn = new JButton(
+                "Print Borrowed Books",
+                new ImageIcon(ClassLoader.getSystemResource("images/Print16.gif"))
+        );
+        printBtn.setFont(new Font("Tahoma", Font.PLAIN, 12));
+        printBtn.addActionListener(e -> handlePrint());
+
+        JPanel center = new JPanel(new BorderLayout());
+        center.setBorder(BorderFactory.createTitledBorder("Borrowed Books:"));
+        center.add(printBtn, BorderLayout.NORTH);
+        center.add(scroll, BorderLayout.CENTER);
+
+        cp.add("Center", center);
     }
-    private void initPrintButton() {
-        ImageIcon printIcon = new ImageIcon(ClassLoader.getSystemResource("images/Print16.gif"));
-        printButton = new JButton("print the books", printIcon);
-        printButton.setFont(new Font("Tahoma", Font.PLAIN, 12));
-        printButton.setToolTipText("Print");
-        centerPanel.add(printButton, BorderLayout.NORTH);
-        printButton.addActionListener(e -> handlePrint());
-    }
-    private void setupColumnWidths() {
-        for (int i = 0; i < 10; i++) {
-            column = table.getColumnModel().getColumn(i);
-            switch (i) {
-                case 0 -> column.setPreferredWidth(50);
-                case 1 -> column.setPreferredWidth(100);
-                case 2 -> column.setPreferredWidth(150);
-                case 3 -> column.setPreferredWidth(50);
-                case 4 -> column.setPreferredWidth(70);
-                case 5, 6, 7 -> column.setPreferredWidth(40);
-                case 8 -> column.setPreferredWidth(75);
-                case 9 -> column.setPreferredWidth(50);
-            }
+
+    private void setColumnWidths() {
+        int[] widths = {50, 100, 150, 50, 70, 40, 40, 40, 75, 50};
+        for (int i = 0; i < widths.length; i++) {
+            TableColumn col = table.getColumnModel().getColumn(i);
+            col.setPreferredWidth(widths[i]);
         }
     }
+
+    /* ----------------------- PRINT ----------------------- */
+
     private void handlePrint() {
-        Thread runner = new Thread(this::processPrintJob);
-        runner.start();
+        new Thread(this::runPrintJob).start();
     }
-    private void processPrintJob() {
+
+    private void runPrintJob() {
         try {
             PrinterJob job = PrinterJob.getPrinterJob();
-            job.setPrintable(new PrintingBooks(DEFAULT_QUERY));
+            job.setPrintable(new PrintingBooks(QUERY));
+
             if (!job.printDialog()) return;
-            setWaitingCursor(true);
+
+            setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
             job.print();
+
         } catch (PrinterException ex) {
-            System.out.println("Printing error: " + ex.toString());
+            System.out.println("Printing error: " + ex.getMessage());
+
         } finally {
-            setWaitingCursor(false);
+            setCursor(Cursor.getDefaultCursor());
         }
-    }
-    private void setWaitingCursor(boolean waiting) {
-        Cursor cursor = waiting ?
-                Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR) :
-                Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR);
-        setCursor(cursor);
     }
 }
