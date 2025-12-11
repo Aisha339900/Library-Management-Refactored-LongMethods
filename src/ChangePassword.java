@@ -118,7 +118,7 @@ public class ChangePassword extends JInternalFrame {
 
     private void handleEdit() {
         if (!isEditCorrect()) {
-            warn("Please enter the old password");
+            DialogUtils.warn(this, "Please enter the old password");
             return;
         }
         new Thread(this::processEdit).start();
@@ -132,7 +132,7 @@ public class ChangePassword extends JInternalFrame {
                 "SELECT * FROM Login WHERE Password='" + old + "'");
 
         if (!exists) {
-            error("Incorrect old password");
+            DialogUtils.error(this, "Incorrect old password");
             oldPasswordField.setText("");
             clearFields();
             return;
@@ -143,7 +143,7 @@ public class ChangePassword extends JInternalFrame {
 
     private void handleUpdate() {
         if (!isCorrect()) {
-            warn("Please complete the information");
+            DialogUtils.warn(this, "Please complete the information");
             return;
         }
         new Thread(this::processUpdate).start();
@@ -164,13 +164,4 @@ public class ChangePassword extends JInternalFrame {
         newPasswords[1].setText("");
     }
 
-    /* --------------------------- POPUPS --------------------------- */
-
-    private void warn(String msg) {
-        JOptionPane.showMessageDialog(null, msg, "Warning", JOptionPane.WARNING_MESSAGE);
-    }
-
-    private void error(String msg) {
-        JOptionPane.showMessageDialog(null, msg, "Error", JOptionPane.ERROR_MESSAGE);
-    }
 }

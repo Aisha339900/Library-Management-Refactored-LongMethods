@@ -1,7 +1,5 @@
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
 
 public class EditBooks extends JInternalFrame {
 
@@ -67,7 +65,7 @@ public class EditBooks extends JInternalFrame {
         left.add(lbl, BorderLayout.WEST);
 
         bookIdField.setFont(new Font("Tahoma", Font.PLAIN, 11));
-        bookIdField.addKeyListener(new DigitOnly());
+        bookIdField.addKeyListener(new DigitOnlyKeyListener());
         left.add(bookIdField, BorderLayout.CENTER);
 
         JPanel btn = new JPanel(new FlowLayout(FlowLayout.RIGHT));
@@ -93,7 +91,7 @@ public class EditBooks extends JInternalFrame {
             fields[i] = new JTextField(25);
             fields[i].setFont(new Font("Tahoma", Font.PLAIN, 11));
             if (i == 4 || i == 5 || i == 6 || i == 8)
-                fields[i].addKeyListener(new DigitOnly());
+                fields[i].addKeyListener(new DigitOnlyKeyListener());
 
             fieldPanel.add(fields[i]);
         }
@@ -135,7 +133,7 @@ public class EditBooks extends JInternalFrame {
 
     private void handleEdit() {
         if (!isEditCorrect()) {
-            warn("Please enter the BookID");
+            DialogUtils.warn(this, "Please enter the BookID");
             return;
         }
         new Thread(this::processEdit).start();
@@ -146,7 +144,7 @@ public class EditBooks extends JInternalFrame {
         book.connection("SELECT * FROM Books WHERE BookID = " + bookIdField.getText());
 
         if (!bookExists()) {
-            error("Invalid BookID");
+            DialogUtils.error(this, "Invalid BookID");
             bookIdField.setText("");
             clearFields();
             return;
@@ -176,7 +174,7 @@ public class EditBooks extends JInternalFrame {
 
     private void handleUpdate() {
         if (!isCorrect()) {
-            warn("Please complete the information");
+            DialogUtils.warn(this, "Please complete the information");
             return;
         }
         new Thread(this::processUpdate).start();
@@ -189,7 +187,7 @@ public class EditBooks extends JInternalFrame {
         int borrowed = book.getNumberOfBorrowedBooks();
         int totalCopies = Integer.parseInt(data[8]);
         if (totalCopies < borrowed) {
-            warn("Copies must be >= borrowed");
+            DialogUtils.warn(this, "Copies must be >= borrowed");
             return;
         }
 
@@ -224,30 +222,7 @@ public class EditBooks extends JInternalFrame {
 
     /* ------------------------- HELPERS ------------------------- */
 
-    private void warn(String msg) {
-        JOptionPane.showMessageDialog(null, msg, "Warning", JOptionPane.WARNING_MESSAGE);
-    }
-
-    private void error(String msg) {
-        JOptionPane.showMessageDialog(null, msg, "Error", JOptionPane.ERROR_MESSAGE);
-    }
-
     private void clearFields() {
         for (JTextField f : fields) f.setText("");
-    }
-
-    /* --------------------- KEY LISTENER ---------------------- */
-
-    private static class DigitOnly extends KeyAdapter {
-        public void keyTyped(KeyEvent e) {
-            char c = e.getKeyChar();
-            if (!Character.isDigit(c) && c != KeyEvent.VK_BACK_SPACE
-                    && c != KeyEvent.VK_DELETE && c != KeyEvent.VK_ENTER) {
-                Toolkit.getDefaultToolkit().beep();
-                JOptionPane.showMessageDialog(null,
-                        "Numbers only!", "WARNING", JOptionPane.DEFAULT_OPTION);
-                e.consume();
-            }
-        }
     }
 }

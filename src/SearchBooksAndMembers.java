@@ -1,7 +1,5 @@
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
 
 public class SearchBooksAndMembers extends JInternalFrame {
 
@@ -64,8 +62,9 @@ public class SearchBooksAndMembers extends JInternalFrame {
         JLabel lblType = new JLabel(" Search by: ");
         JLabel lblKey = new JLabel(" Keyword: ");
 
-        bookKeyField.addKeyListener(new DigitListener(() ->
-                bookTypeBox.getSelectedItem().equals("BookID")));
+        bookKeyField.addKeyListener(new DigitOnlyKeyListener(
+            () -> bookTypeBox.getSelectedItem().equals("BookID"),
+            "This Field Only Accepts Integer Numbers"));
 
         form.add(lblType);
         form.add(bookTypeBox);
@@ -89,8 +88,9 @@ public class SearchBooksAndMembers extends JInternalFrame {
         JLabel lblType = new JLabel(" Search by: ");
         JLabel lblKey = new JLabel(" Keyword: ");
 
-        memberKeyField.addKeyListener(new DigitListener(() ->
-                memberTypeBox.getSelectedItem().equals("MemberID")));
+        memberKeyField.addKeyListener(new DigitOnlyKeyListener(
+            () -> memberTypeBox.getSelectedItem().equals("MemberID"),
+            "This Field Only Accepts Integer Numbers"));
 
         form.add(lblType);
         form.add(memberTypeBox);
@@ -143,7 +143,7 @@ public class SearchBooksAndMembers extends JInternalFrame {
     private void handleBookSearch() {
         String[] data = new String[2];
         if (!prepareBookSearch(data)) {
-            warn("Please complete the information");
+            DialogUtils.warn(this, "Please complete the information");
             return;
         }
 
@@ -157,7 +157,7 @@ public class SearchBooksAndMembers extends JInternalFrame {
         book.connection(checkQuery);
 
         if (book.getBookID() == 0) {
-            warn("No Match(es)");
+            DialogUtils.warn(this, "No Match(es)");
             bookKeyField.setText("");
             return;
         }
@@ -168,7 +168,7 @@ public class SearchBooksAndMembers extends JInternalFrame {
     private void handleMemberSearch() {
         String[] data = new String[2];
         if (!prepareMemberSearch(data)) {
-            warn("Please complete the information");
+            DialogUtils.warn(this, "Please complete the information");
             return;
         }
 
@@ -181,7 +181,7 @@ public class SearchBooksAndMembers extends JInternalFrame {
         member.connection(checkQuery);
 
         if (member.getMemberID() == 0) {
-            warn("No Match(es)");
+            DialogUtils.warn(this, "No Match(es)");
             memberKeyField.setText("");
             return;
         }
@@ -197,38 +197,4 @@ public class SearchBooksAndMembers extends JInternalFrame {
 
     /* ------------------------ HELPERS ------------------------ */
 
-    private void warn(String msg) {
-        JOptionPane.showMessageDialog(null, msg, "Warning", JOptionPane.WARNING_MESSAGE);
-    }
-
-    /* ------------------------ DIGIT LISTENER ------------------------ */
-
-    private static class DigitListener extends KeyAdapter {
-        private final ValidationRule rule;
-
-        DigitListener(ValidationRule rule) {
-            this.rule = rule;
-        }
-
-        public void keyTyped(KeyEvent e) {
-            if (!rule.shouldValidate()) return;
-
-            char c = e.getKeyChar();
-            if (!Character.isDigit(c) &&
-                    c != KeyEvent.VK_BACK_SPACE &&
-                    c != KeyEvent.VK_DELETE &&
-                    c != KeyEvent.VK_ENTER) {
-
-                Toolkit.getDefaultToolkit().beep();
-                JOptionPane.showMessageDialog(null,
-                        "This Field Only Accepts Integer Numbers",
-                        "WARNING", JOptionPane.WARNING_MESSAGE);
-                e.consume();
-            }
-        }
-    }
-
-    private interface ValidationRule {
-        boolean shouldValidate();
-    }
 }

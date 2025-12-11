@@ -1,7 +1,5 @@
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
 
 public class RemoveBooks extends JInternalFrame {
 
@@ -42,7 +40,7 @@ public class RemoveBooks extends JInternalFrame {
         lbl.setFont(new Font("Tahoma", Font.BOLD, 11));
 
         bookIdField.setFont(new Font("Tahoma", Font.PLAIN, 11));
-        bookIdField.addKeyListener(new DigitOnly());
+        bookIdField.addKeyListener(new DigitOnlyKeyListener());
 
         JPanel input = new JPanel(new GridLayout(1, 2, 5, 5));
         input.add(lbl);
@@ -80,7 +78,7 @@ public class RemoveBooks extends JInternalFrame {
 
     private void handleRemove() {
         if (!isValidInput()) {
-            warn("Please enter a valid Book ID.");
+            DialogUtils.warn(this, "Please enter a valid Book ID.");
             return;
         }
         new Thread(this::processRemoval).start();
@@ -91,7 +89,7 @@ public class RemoveBooks extends JInternalFrame {
         book.connection("SELECT * FROM Books WHERE BookID = " + bookId);
 
         if (book.getBookID() < 1) {
-            error("The BookID is incorrect!");
+            DialogUtils.error(this, "The BookID is incorrect!");
             clearField();
             return;
         }
@@ -100,7 +98,7 @@ public class RemoveBooks extends JInternalFrame {
         int available = book.getNumberOfAvailbleBooks();
 
         if (available < 1) {
-            error("Book cannot be deleted — it is currently borrowed.");
+            DialogUtils.error(this, "Book cannot be deleted — it is currently borrowed.");
             clearField();
             return;
         }
@@ -131,37 +129,7 @@ public class RemoveBooks extends JInternalFrame {
 
     /* --------------------- HELPERS --------------------- */
 
-    private void warn(String msg) {
-        JOptionPane.showMessageDialog(null, msg, "Warning", JOptionPane.WARNING_MESSAGE);
-    }
-
-    private void error(String msg) {
-        JOptionPane.showMessageDialog(null, msg, "Error", JOptionPane.ERROR_MESSAGE);
-    }
-
     private void clearField() {
         bookIdField.setText("");
-    }
-
-    /* --------------------- KEY LISTENER --------------------- */
-
-    private static class DigitOnly extends KeyAdapter {
-        public void keyTyped(KeyEvent e) {
-            char c = e.getKeyChar();
-            if (!Character.isDigit(c) &&
-                    c != KeyEvent.VK_BACK_SPACE &&
-                    c != KeyEvent.VK_DELETE &&
-                    c != KeyEvent.VK_ENTER) {
-
-                Toolkit.getDefaultToolkit().beep();
-                JOptionPane.showMessageDialog(
-                        null,
-                        "This Field Only Accepts Integer Numbers",
-                        "WARNING",
-                        JOptionPane.DEFAULT_OPTION
-                );
-                e.consume();
-            }
-        }
     }
 }

@@ -1,7 +1,5 @@
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
 import java.util.Arrays;
 import java.util.Date;
 
@@ -67,7 +65,7 @@ public class EditMembers extends JInternalFrame {
         lbl.setFont(new Font("Tahoma", Font.BOLD, 11));
 
         memberIdField.setFont(new Font("Tahoma", Font.PLAIN, 11));
-        memberIdField.addKeyListener(new NumberListener());
+        memberIdField.addKeyListener(new DigitOnlyKeyListener());
 
         JPanel top = new JPanel(new BorderLayout());
         top.add(lbl, BorderLayout.WEST);
@@ -187,7 +185,7 @@ public class EditMembers extends JInternalFrame {
 
     private void handleEdit() {
         if (!isEditCorrect()) {
-            warn("Please enter the MemberID");
+            DialogUtils.warn(this, "Please enter the MemberID");
             return;
         }
         new Thread(this::processEdit).start();
@@ -198,7 +196,7 @@ public class EditMembers extends JInternalFrame {
         member.connection("SELECT * FROM Members WHERE MemberID = " + memberIdField.getText());
 
         if (member.getRegNo() <= 0) {
-            error("Incorrect MemberID");
+            DialogUtils.error(this, "Incorrect MemberID");
             clearFields();
             return;
         }
@@ -220,7 +218,7 @@ public class EditMembers extends JInternalFrame {
 
     private void handleUpdate() {
         if (!isCorrect()) {
-            warn("Please complete the information");
+            DialogUtils.warn(this, "Please complete the information");
             return;
         }
         new Thread(this::processUpdate).start();
@@ -244,31 +242,9 @@ public class EditMembers extends JInternalFrame {
 
     /* ------------------------- HELPERS ------------------------- */
 
-    private void warn(String msg) {
-        JOptionPane.showMessageDialog(null, msg, "Warning", JOptionPane.WARNING_MESSAGE);
-    }
-
-    private void error(String msg) {
-        JOptionPane.showMessageDialog(null, msg, "Error", JOptionPane.ERROR_MESSAGE);
-    }
-
     private void clearFields() {
         fields[0].setText("");
         for (JPasswordField pf : passwordFields) pf.setText("");
         for (int i = 1; i < fields.length; i++) fields[i].setText("");
-    }
-
-    /* ------------------------- KEY LISTENER ------------------------- */
-
-    private static class NumberKeyListener extends KeyAdapter {
-        public void keyTyped(KeyEvent e) {
-            char c = e.getKeyChar();
-            if (!Character.isDigit(c) && c != KeyEvent.VK_BACK_SPACE
-                    && c != KeyEvent.VK_ENTER && c != KeyEvent.VK_DELETE) {
-                Toolkit.getDefaultToolkit().beep();
-                JOptionPane.showMessageDialog(null, "Numbers only!", "WARNING", JOptionPane.DEFAULT_OPTION);
-                e.consume();
-            }
-        }
     }
 }

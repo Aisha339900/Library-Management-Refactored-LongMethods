@@ -1,7 +1,5 @@
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
 import java.util.Arrays;
 import java.util.Date;
 
@@ -87,7 +85,7 @@ public class AddMembers extends JInternalFrame {
     private JTextField buildRegField() {
         JTextField tf = new JTextField(25);
         tf.setFont(new Font("Tahoma", Font.PLAIN, 11));
-        tf.addKeyListener(new NumericKeyListener());
+        tf.addKeyListener(new DigitOnlyKeyListener());
         informationTextField[0] = tf;
         return tf;
     }
@@ -159,11 +157,11 @@ public class AddMembers extends JInternalFrame {
 
     private void handleInsertMember() {
         if (!isCorrect()) {
-            showWarning("Please, complete the information");
+            DialogUtils.warn(this, "Please, complete the information");
             return;
         }
         if (!validatePasswords()) {
-            showError("The password is wrong");
+            DialogUtils.error(this, "The password is wrong");
             return;
         }
         new Thread(this::processInsert).start();
@@ -173,7 +171,7 @@ public class AddMembers extends JInternalFrame {
         Date today = new Date();
         Date expiry = expiry_date.getDate();
         if (!today.before(expiry)) {
-            showWarning("Expiry Date is invalid");
+            DialogUtils.warn(this, "Expiry Date is invalid");
             return;
         }
 
@@ -181,7 +179,7 @@ public class AddMembers extends JInternalFrame {
         member.connection("SELECT * FROM Members WHERE RegNo = " + data[0]);
 
         if (Integer.parseInt(data[0]) == member.getRegNo()) {
-            showError("Member is in the Library");
+            DialogUtils.error(this, "Member is in the Library");
             return;
         }
 
@@ -196,30 +194,4 @@ public class AddMembers extends JInternalFrame {
         member.update(q);
     }
 
-    /* ------------------------- UI HELPERS ------------------------- */
-
-    private void showWarning(String msg) {
-        JOptionPane.showMessageDialog(null, msg, "Warning", JOptionPane.WARNING_MESSAGE);
-    }
-
-    private void showError(String msg) {
-        JOptionPane.showMessageDialog(null, msg, "Error", JOptionPane.ERROR_MESSAGE);
-    }
-
-    /* ------------------------- KEY LISTENER ------------------------- */
-
-    class NumericKeyListener extends KeyAdapter {
-        public void keyTyped(KeyEvent e) {
-            char c = e.getKeyChar();
-            if (!Character.isDigit(c) && c != KeyEvent.VK_BACK_SPACE
-                    && c != KeyEvent.VK_ENTER && c != KeyEvent.VK_DELETE) {
-                Toolkit.getDefaultToolkit().beep();
-                JOptionPane.showMessageDialog(null,
-                        "This Field Only Accept Integer Number",
-                        "WARNING",
-                        JOptionPane.DEFAULT_OPTION);
-                e.consume();
-            }
-        }
-    }
 }

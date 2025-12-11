@@ -1,7 +1,5 @@
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -98,12 +96,12 @@ public class AddBooks extends JInternalFrame {
             informationTextField[i] = new JTextField(25);
             informationTextField[i].setFont(new Font("Tahoma", Font.PLAIN, 11));
             if (i == 4 || i == 5 || i == 6 || i == 8)
-                informationTextField[i].addKeyListener(new NumericKeyListener());
+                informationTextField[i].addKeyListener(new DigitOnlyKeyListener());
             informationTextFieldPanel.add(informationTextField[i]);
         }
 
         txtShelfNo.setFont(new Font("Tahoma", Font.PLAIN, 11));
-        txtShelfNo.addKeyListener(new NumericKeyListener());
+        txtShelfNo.addKeyListener(new DigitOnlyKeyListener());
         informationTextFieldPanel.add(txtShelfNo);
     }
 
@@ -128,7 +126,7 @@ public class AddBooks extends JInternalFrame {
 
     private void handleInsertAction() {
         if (!isCorrect()) {
-            showWarning("Please, complete the information");
+            DialogUtils.warn(this, "Please, complete the information");
             return;
         }
         new Thread(this::processInsert).start();
@@ -138,7 +136,7 @@ public class AddBooks extends JInternalFrame {
         Books book = new Books();
         book.connection("SELECT * FROM Books WHERE ISBN = '" + data[7] + "'");
         if (data[7].equalsIgnoreCase(book.getISBN())) {
-            showError("The book is in the library");
+            DialogUtils.error(this, "The book is in the library");
             return;
         }
         insertBookToDatabase();
@@ -171,34 +169,7 @@ public class AddBooks extends JInternalFrame {
 
             ps.executeUpdate();
         } catch (Exception ex) {
-            showError(ex.getMessage());
-        }
-    }
-
-    /* ---------------------- POPUPS ---------------------- */
-
-    private void showWarning(String msg) {
-        JOptionPane.showMessageDialog(null, msg, "Warning", JOptionPane.WARNING_MESSAGE);
-    }
-
-    private void showError(String msg) {
-        JOptionPane.showMessageDialog(null, msg, "Error", JOptionPane.ERROR_MESSAGE);
-    }
-
-    /* ---------------------- LISTENER ---------------------- */
-
-    class NumericKeyListener extends KeyAdapter {
-        public void keyTyped(KeyEvent e) {
-            char c = e.getKeyChar();
-            if (!Character.isDigit(c) && c != KeyEvent.VK_BACK_SPACE
-                    && c != KeyEvent.VK_ENTER && c != KeyEvent.VK_DELETE) {
-                Toolkit.getDefaultToolkit().beep();
-                JOptionPane.showMessageDialog(null,
-                        "This Field Only Accept Integer Number",
-                        "WARNING",
-                        JOptionPane.DEFAULT_OPTION);
-                e.consume();
-            }
+            DialogUtils.error(this, ex.getMessage());
         }
     }
 }

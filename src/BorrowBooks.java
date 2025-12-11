@@ -1,7 +1,5 @@
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
 import java.util.Date;
 
 public class BorrowBooks extends JInternalFrame {
@@ -70,7 +68,7 @@ public class BorrowBooks extends JInternalFrame {
                 default -> {
                     textField[i] = new JTextField();
                     textField[i].setFont(new Font("Tahoma", Font.PLAIN, 11));
-                    textField[i].addKeyListener(new DigitKey());
+                    textField[i].addKeyListener(new DigitOnlyKeyListener());
                     panel.add(textField[i]);
                 }
             }
@@ -129,7 +127,7 @@ public class BorrowBooks extends JInternalFrame {
 
     private boolean memberNotExpired(Date today) {
         if (!today.before(member.getValidUpto())) {
-            warn("Member is Expired");
+            DialogUtils.warn(this, "Member is Expired");
             return false;
         }
         return true;
@@ -137,7 +135,7 @@ public class BorrowBooks extends JInternalFrame {
 
     private boolean bookAndMemberFound() {
         if (book.getBookID() < 1 || member.getMemberID() < 1) {
-            warn("Member ID or Book ID not found");
+            DialogUtils.warn(this, "Member ID or Book ID not found");
             return false;
         }
         return true;
@@ -155,7 +153,7 @@ public class BorrowBooks extends JInternalFrame {
 
     private void handleBorrow() {
         if (!isCorrect()) {
-            warn("Please complete the information");
+            DialogUtils.warn(this, "Please complete the information");
             return;
         }
         new Thread(this::processBorrow).start();
@@ -167,7 +165,7 @@ public class BorrowBooks extends JInternalFrame {
         initObjects();
 
         if (alreadyBorrowed()) {
-            warn("The book is already borrowed by this member");
+            DialogUtils.warn(this, "The book is already borrowed by this member");
             clearFields();
             return;
         }
@@ -189,7 +187,7 @@ public class BorrowBooks extends JInternalFrame {
         int memberTotal = member.getNumberOfBooks() + 1;
 
         if (available < 1) {
-            warn("The book is borrowed");
+            DialogUtils.warn(this, "The book is borrowed");
             return;
         }
 
@@ -212,27 +210,7 @@ public class BorrowBooks extends JInternalFrame {
 
     /* ---------------- HELPERS ---------------- */
 
-    private void warn(String msg) {
-        JOptionPane.showMessageDialog(null, msg, "Warning", JOptionPane.WARNING_MESSAGE);
-    }
-
     private void clearFields() {
         for (JTextField tf : textField) if (tf != null) tf.setText(null);
-    }
-
-    /* ---------------- LISTENER ---------------- */
-
-    private static class DigitKey extends KeyAdapter {
-        public void keyTyped(KeyEvent e) {
-            char c = e.getKeyChar();
-            if (!Character.isDigit(c) && c != KeyEvent.VK_BACK_SPACE &&
-                    c != KeyEvent.VK_ENTER && c != KeyEvent.VK_DELETE) {
-                Toolkit.getDefaultToolkit().beep();
-                JOptionPane.showMessageDialog(null,
-                        "This Field Only Accept Integer Number",
-                        "WARNING", JOptionPane.DEFAULT_OPTION);
-                e.consume();
-            }
-        }
     }
 }

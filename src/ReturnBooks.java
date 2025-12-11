@@ -53,7 +53,7 @@ public class ReturnBooks extends JInternalFrame implements ActionListener {
             l.setFont(new Font("Tahoma", Font.BOLD, 11));
 
             fields[i].setFont(new Font("Tahoma", Font.PLAIN, 11));
-            fields[i].addKeyListener(new DigitListener());
+            fields[i].addKeyListener(new DigitOnlyKeyListener());
 
             form.add(l);
             form.add(fields[i]);
@@ -115,7 +115,7 @@ public class ReturnBooks extends JInternalFrame implements ActionListener {
 
     private void handleReturn() {
         if (!isCorrect()) {
-            warn("Please, complete the information");
+            DialogUtils.warn(this, "Please, complete the information");
             return;
         }
         new Thread(this::processReturn).start();
@@ -128,7 +128,7 @@ public class ReturnBooks extends JInternalFrame implements ActionListener {
         initModels();
 
         if (!borrowRecordExists()) {
-            warn("The book is not borrowed");
+            DialogUtils.warn(this, "The book is not borrowed");
             clearInputs();
             return;
         }
@@ -140,7 +140,7 @@ public class ReturnBooks extends JInternalFrame implements ActionListener {
         int memberBooks = member.getNumberOfBooks() - 1;
 
         if (memberBooks < 0) {
-            warn("Invalid member book count");
+            DialogUtils.warn(this, "Invalid member book count");
             return;
         }
 
@@ -211,7 +211,7 @@ public class ReturnBooks extends JInternalFrame implements ActionListener {
                 java.sql.Date dueDate = fetchReturnDate();
 
                 if (dueDate == null) {
-                    warn("Member ID or Book ID not found");
+                    DialogUtils.warn(ReturnBooks.this, "Member ID or Book ID not found");
                     return;
                 }
 
@@ -222,7 +222,7 @@ public class ReturnBooks extends JInternalFrame implements ActionListener {
                 txtTotalFineAmt.setText(String.valueOf(daysLate * finePerDay));
 
             } catch (Exception ex) {
-                warn("Error calculating fine");
+                DialogUtils.warn(ReturnBooks.this, "Error calculating fine");
             }
         }
 
@@ -239,31 +239,5 @@ public class ReturnBooks extends JInternalFrame implements ActionListener {
                 return rs.next() ? rs.getDate(1) : null;
             }
         }
-    }
-
-    /* ------------ Digit Filter ------------ */
-
-    private static class DigitListener extends KeyAdapter {
-        @Override
-        public void keyTyped(KeyEvent e) {
-            char c = e.getKeyChar();
-            if (!Character.isDigit(c) &&
-                c != KeyEvent.VK_BACK_SPACE &&
-                c != KeyEvent.VK_ENTER &&
-                c != KeyEvent.VK_DELETE) {
-
-                Toolkit.getDefaultToolkit().beep();
-                JOptionPane.showMessageDialog(
-                        null,
-                        "This Field Only Accepts Integer Numbers",
-                        "WARNING",
-                        JOptionPane.WARNING_MESSAGE);
-                e.consume();
-            }
-        }
-    }
-
-    private void warn(String msg) {
-        JOptionPane.showMessageDialog(null, msg, "Warning", JOptionPane.WARNING_MESSAGE);
     }
 }

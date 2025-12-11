@@ -1,7 +1,5 @@
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
 
 public class RemoveMembers extends JInternalFrame {
 
@@ -42,7 +40,7 @@ public class RemoveMembers extends JInternalFrame {
         lbl.setFont(new Font("Tahoma", Font.BOLD, 11));
 
         memberIdField.setFont(new Font("Tahoma", Font.PLAIN, 11));
-        memberIdField.addKeyListener(new DigitOnly());
+        memberIdField.addKeyListener(new DigitOnlyKeyListener());
 
         JPanel input = new JPanel(new GridLayout(1, 2, 5, 5));
         input.add(lbl);
@@ -78,7 +76,7 @@ public class RemoveMembers extends JInternalFrame {
 
     private void handleRemove() {
         if (!isValidInput()) {
-            warn("Please enter the Member ID.");
+            DialogUtils.warn(this, "Please enter the Member ID.");
             return;
         }
         new Thread(this::processRemoval).start();
@@ -90,14 +88,14 @@ public class RemoveMembers extends JInternalFrame {
 
         int id = member.getMemberID();
         if (id < 1) {
-            error("The MemberID is incorrect!");
+            DialogUtils.error(this, "The MemberID is incorrect!");
             clearField();
             return;
         }
 
         int borrowed = member.getNumberOfBooks();
         if (borrowed > 0) {
-            warn("Member has borrowed book(s). Cannot delete.");
+            DialogUtils.warn(this, "Member has borrowed book(s). Cannot delete.");
             clearField();
             return;
         }
@@ -112,35 +110,7 @@ public class RemoveMembers extends JInternalFrame {
 
     /* -------------------- HELPERS -------------------- */
 
-    private void warn(String msg) {
-        JOptionPane.showMessageDialog(null, msg, "Warning", JOptionPane.WARNING_MESSAGE);
-    }
-
-    private void error(String msg) {
-        JOptionPane.showMessageDialog(null, msg, "Error", JOptionPane.ERROR_MESSAGE);
-    }
-
     private void clearField() {
         memberIdField.setText("");
-    }
-
-    /* -------------------- DIGIT LISTENER -------------------- */
-
-    private static class DigitOnly extends KeyAdapter {
-        public void keyTyped(KeyEvent e) {
-            char c = e.getKeyChar();
-            if (!Character.isDigit(c) &&
-                c != KeyEvent.VK_BACK_SPACE &&
-                c != KeyEvent.VK_DELETE &&
-                c != KeyEvent.VK_ENTER) {
-                Toolkit.getDefaultToolkit().beep();
-                JOptionPane.showMessageDialog(
-                        null,
-                        "This Field Only Accepts Integer Number",
-                        "WARNING", JOptionPane.DEFAULT_OPTION
-                );
-                e.consume();
-            }
-        }
     }
 }
