@@ -1,28 +1,8 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
-/**
- *
- * @author Ganesh Sharma
- */
-
-
-//import the packages for using the classes in them into the program
-
 import java.sql.*;
-
 public class Books {
-	/***************************************************************************
-	 ***      declaration of the private variables used in the program       ***
-	 ***************************************************************************/
-
 	private Connection connection = null;
 	private Statement statement = null;
 	private ResultSet resultSet = null;
-
 	private int bookID;
 	private String subject;
 	private String title;
@@ -37,67 +17,50 @@ public class Books {
 	private int numberOfBorrowedBooks;
 	private String library;
 	private boolean availble;
-	//private String URL = "jdbc:mysql://localhost:3306/Library,root,doeacc";
-
 	public Books() {
 	}
-
 	public int getBookID() {
 		return bookID;
 	}
-
 	public String getSubject() {
 		return subject;
 	}
-
 	public String getTitle() {
 		return title;
 	}
-
 	public String getAuthor() {
 		return author;
 	}
-
 	public String getPublisher() {
 		return publisher;
 	}
-
 	public int getCopyright() {
 		return copyright;
 	}
-
 	public int getEdition() {
 		return edition;
 	}
-
 	public int getPages() {
 		return pages;
 	}
-
 	public String getISBN() {
 		return ISBN;
 	}
-
 	public int getNumberOfBooks() {
 		return numberOfBooks;
 	}
-
 	public int getNumberOfAvailbleBooks() {
 		return numberOfAvailbleBooks;
 	}
-
 	public int getNumberOfBorrowedBooks() {
 		return numberOfBorrowedBooks;
 	}
-
 	public String getLibrary() {
 		return library;
 	}
-
 	public boolean getAvailble() {
 		return availble;
 	}
-
 	public void connection(String Query) {
 		try {
 			Class.forName("org.gjt.mm.mysql.Driver");
@@ -108,11 +71,6 @@ public class Books {
 		catch (Exception e) {
 			System.out.println("Books.java\n" + e.toString());
 		}
-		/***************************************************************
-		 * for making the connection,creating the statement and update *
-		 * the table in the database. After that,closing the statmenet *
-		 * and connection. There is catch block SQLException for error *
-		 ***************************************************************/
 		try {
 			connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/Library","root","nielit");
 			statement = connection.createStatement();
@@ -141,7 +99,6 @@ public class Books {
 			System.out.println("Books.java" +"\n" + SQLe.toString());
 		}
 	}
-
 	public void update(String Query) {
 		try {
 			Class.forName("org.gjt.mm.mysql.Driver");
@@ -152,13 +109,7 @@ public class Books {
 		catch (Exception e) {
 			System.out.println("Books.java\n" + e.toString());
 		}
-		/***************************************************************
-		 * for making the connection,creating the statement and update *
-		 * the table in the database. After that,closing the statmenet *
-		 * and connection. There is catch block SQLException for error *
-		 ***************************************************************/
 		try {
-			//connection = DriverManager.getConnection("jdbc:odbc:JLibrary2");
 			connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/Library","root","nielit");
 			statement = connection.createStatement();
 			statement.executeUpdate(Query);

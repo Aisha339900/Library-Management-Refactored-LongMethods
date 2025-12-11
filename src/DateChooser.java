@@ -1,24 +1,11 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
-/**
- *
- * @author Ganesh Sharma
- */
-
 import java.awt.*;
 import java.awt.event.*;
 import java.util.*;
 import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.table.*;
-
 public class DateChooser extends JDialog
         implements ItemListener, MouseListener, FocusListener, KeyListener, ActionListener {
-
     Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
     private static final String[] MONTHS =
             new String[]{
@@ -64,31 +51,23 @@ public class DateChooser extends JDialog
     private int lastDay;
     private JLabel day;
     private boolean okClicked;
-
     private static class FocusablePanel extends JPanel {
-
         public FocusablePanel(LayoutManager layout) {
             super(layout);
-
         }
-
         public boolean isFocusTraversable() {
             return true;
         }
     }
-
     private void construct() {
         calendar = new GregorianCalendar();
-
         month = new JComboBox(MONTHS);
         month.addItemListener(this);
-
         year = new JComboBox();
         for (int i = FIRST_YEAR; i <= LAST_YEAR; i++) {
             year.addItem(Integer.toString(i));
         }
         year.addItemListener(this);
-
         days = new JLabel[7][7];
         for (int i = 0; i < 7; i++) {
             days[0][i] = new JLabel(DAYS[i], JLabel.RIGHT);
@@ -103,16 +82,13 @@ public class DateChooser extends JDialog
                 days[i][j].addMouseListener(this);
             }
         }
-
         ok = new JButton("Ok");
         ok.addActionListener(this);
         cancel = new JButton("Cancel");
         cancel.addActionListener(this);
-
         JPanel monthYear = new JPanel();
         monthYear.add(month);
         monthYear.add(year);
-
         daysGrid = new FocusablePanel(new GridLayout(7, 7, 5, 0));
         daysGrid.addFocusListener(this);
         daysGrid.addKeyListener(this);
@@ -125,20 +101,16 @@ public class DateChooser extends JDialog
         daysGrid.setBorder(BorderFactory.createLoweredBevelBorder());
         JPanel daysPanel = new JPanel();
         daysPanel.add(daysGrid);
-
         JPanel buttons = new JPanel();
         buttons.add(ok);
         buttons.add(cancel);
-
         Container dialog = getContentPane();
         dialog.add("North", monthYear);
         dialog.add("Center", daysPanel);
         dialog.add("South", buttons);
-
         pack();
         setResizable(false);
     }
-
     private int getSelectedDay() {
         if (day == null) {
             return -1;
@@ -149,7 +121,6 @@ public class DateChooser extends JDialog
         }
         return -1;
     }
-
     private void setSelected(JLabel newDay) {
         if (day != null) {
             day.setForeground(DAYS_FOREGROUND);
@@ -163,11 +134,9 @@ public class DateChooser extends JDialog
             day.setBorder(FOCUSED_BORDER);
         }
     }
-
     private void setSelected(int newDay) {
         setSelected(days[(newDay + offset - 1) / 7 + 1][(newDay + offset - 1) % 7]);
     }
-
     private void update() {
         int iday = getSelectedDay();
         for (int i = 0; i < 7; i++) {
@@ -178,7 +147,6 @@ public class DateChooser extends JDialog
         calendar.set(Calendar.DATE, 1);
         calendar.set(Calendar.MONTH, month.getSelectedIndex() + Calendar.JANUARY);
         calendar.set(Calendar.YEAR, year.getSelectedIndex() + FIRST_YEAR);
-
         offset = calendar.get(Calendar.DAY_OF_WEEK) - Calendar.SUNDAY;
         lastDay = calendar.getActualMaximum(Calendar.DATE);
         for (int i = 0; i < lastDay; i++) {
@@ -191,26 +159,21 @@ public class DateChooser extends JDialog
             setSelected(iday);
         }
     }
-
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() == ok) {
             okClicked = true;
         }
         hide();
     }
-
     public void focusGained(FocusEvent e) {
         setSelected(day);
     }
-
     public void focusLost(FocusEvent e) {
         setSelected(day);
     }
-
     public void itemStateChanged(ItemEvent e) {
         update();
     }
-
     public void keyPressed(KeyEvent e) {
         int iday = getSelectedDay();
         switch (e.getKeyCode()) {
@@ -236,7 +199,6 @@ public class DateChooser extends JDialog
                 break;
         }
     }
-
     public void mouseClicked(MouseEvent e) {
         JLabel day = (JLabel) e.getSource();
         if (!day.getText().equals(" ")) {
@@ -244,52 +206,40 @@ public class DateChooser extends JDialog
         }
         daysGrid.requestFocus();
     }
-
     public void keyReleased(KeyEvent e) {
     }
-
     public void keyTyped(KeyEvent e) {
     }
-
     public void mouseEntered(MouseEvent e) {
     }
-
     public void mouseExited(MouseEvent e) {
     }
-
     public void mousePressed(MouseEvent e) {
     }
-
     public void mouseReleased(MouseEvent e) {
     }
-
     public DateChooser(Dialog owner, String title) {
         super(owner, title, true);
         construct();
     }
-
     public DateChooser(Dialog owner) {
         super(owner, true);
         construct();
     }
-
     public DateChooser(Frame owner, String title) {
         super(owner, title, true);
         construct();
     }
-
     public DateChooser(Frame owner) {
         super(owner, true);
         construct();
         setLocation((screen.width - 800) / 2, ((screen.height - 550) / 2));
     }
-
     public Date select(Date date) {
         calendar.setTime(date);
         int _day = calendar.get(Calendar.DATE);
         int _month = calendar.get(Calendar.MONTH);
         int _year = calendar.get(Calendar.YEAR);
-
         year.setSelectedIndex(_year - FIRST_YEAR);
         month.setSelectedIndex(_month - Calendar.JANUARY);
         setSelected(_day);
@@ -303,9 +253,7 @@ public class DateChooser extends JDialog
         calendar.set(Calendar.YEAR, year.getSelectedIndex() + FIRST_YEAR);
         return calendar.getTime();
     }
-
     public Date select() {
         return select(new Date());
     }
 }
-

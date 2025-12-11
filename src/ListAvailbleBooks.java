@@ -4,9 +4,7 @@ import java.awt.*;
 import java.awt.print.PrinterException;
 import java.awt.print.PrinterJob;
 import java.sql.SQLException;
-
 public class ListAvailbleBooks extends JInternalFrame {
-
     private JPanel northPanel = new JPanel();
     private JPanel centerPanel = new JPanel();
     private JLabel label = new JLabel("THE LIST FOR THE AVAILABLE BOOKS");
@@ -14,36 +12,25 @@ public class ListAvailbleBooks extends JInternalFrame {
     private JTable table;
     private JScrollPane scrollPane;
     private TableColumn column;
-
     private ResultSetTableModel tableModel;
-
     private static final String JDBC_DRIVER = "org.gjt.mm.mysql.Driver";
     private static final String DATABASE_URL = "jdbc:mysql://localhost:3306/Library";
     private static final String USER_NAME = "root";
     private static final String PASSWORD = "nielit";
-
     private static final String DEFAULT_QUERY =
             "SELECT BookID,Subject,Title,Author,Publisher,Copyright,Edition," +
             "Pages,ISBN,Library,ShelfNo FROM Books WHERE Availble = true";
-
-
-    // --------------------- Constructor ---------------------
     public ListAvailbleBooks() {
         super("Available Books", false, true, false, true);
         setFrameIcon(new ImageIcon(ClassLoader.getSystemResource("images/List16.gif")));
-
         initDatabase();
         initTable();
         initNorthPanel();
         initCenterPanel();
         initPrintButton();
-
         setVisible(true);
         pack();
     }
-
-    // --------------------- Initialization Methods ---------------------
-
     private void initDatabase() {
         try {
             tableModel = new ResultSetTableModel(
@@ -52,76 +39,59 @@ public class ListAvailbleBooks extends JInternalFrame {
             tableModel.setQuery(DEFAULT_QUERY);
         } catch (ClassNotFoundException | SQLException ignored) {}
     }
-
     private void initTable() {
         table = new JTable(tableModel);
         table.setPreferredScrollableViewportSize(new Dimension(990, 200));
         table.setFont(new Font("Tahoma", Font.PLAIN, 12));
-
         scrollPane = new JScrollPane(table);
         setupTableColumnWidths();
     }
-
     private void initNorthPanel() {
         label.setFont(new Font("Tahoma", Font.BOLD, 14));
         northPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
         northPanel.add(label);
     }
-
     private void initCenterPanel() {
         Container cp = getContentPane();
-
         centerPanel.setLayout(new BorderLayout());
         centerPanel.setBorder(BorderFactory.createTitledBorder("Available Books:"));
         cp.add("North", northPanel);
-
         cp.add("Center", centerPanel);
-
         centerPanel.add(scrollPane, BorderLayout.CENTER);
     }
-
     private void initPrintButton() {
         ImageIcon printIcon = new ImageIcon(ClassLoader.getSystemResource("images/Print16.gif"));
         printButton = new JButton("print the books", printIcon);
         printButton.setToolTipText("Print");
         printButton.setFont(new Font("Tahoma", Font.PLAIN, 12));
-
         centerPanel.add(printButton, BorderLayout.NORTH);
-
         printButton.addActionListener(e -> handlePrint());
     }
-
     private void setupTableColumnWidths() {
         for (int i = 0; i < 11; i++) {
             column = table.getColumnModel().getColumn(i);
             switch (i) {
-                case 0 -> column.setPreferredWidth(20);   // BookID
-                case 1 -> column.setPreferredWidth(100);  // Subject
-                case 2 -> column.setPreferredWidth(150);  // Title
-                case 3 -> column.setPreferredWidth(50);   // Author
-                case 4 -> column.setPreferredWidth(70);   // Publisher
-                case 5, 6, 7 -> column.setPreferredWidth(40); // Copyright, Edition, Pages
-                case 8 -> column.setPreferredWidth(75);   // ISBN
-                case 9 -> column.setPreferredWidth(50);   // Library
-                case 10 -> column.setPreferredWidth(30);  // ShelfNo
+                case 0 -> column.setPreferredWidth(20);
+                case 1 -> column.setPreferredWidth(100);
+                case 2 -> column.setPreferredWidth(150);
+                case 3 -> column.setPreferredWidth(50);
+                case 4 -> column.setPreferredWidth(70);
+                case 5, 6, 7 -> column.setPreferredWidth(40);
+                case 8 -> column.setPreferredWidth(75);
+                case 9 -> column.setPreferredWidth(50);
+                case 10 -> column.setPreferredWidth(30);
             }
         }
     }
-
-    // ------------------- PRINT LOGIC --------------------
-
     private void handlePrint() {
         Thread runner = new Thread(this::processPrintJob);
         runner.start();
     }
-
     private void processPrintJob() {
         try {
             PrinterJob job = PrinterJob.getPrinterJob();
             job.setPrintable(new PrintingBooks(DEFAULT_QUERY));
-
             if (!job.printDialog()) return;
-
             setWaitingCursor(true);
             job.print();
         } catch (PrinterException ex) {
@@ -130,12 +100,10 @@ public class ListAvailbleBooks extends JInternalFrame {
             setWaitingCursor(false);
         }
     }
-
     private void setWaitingCursor(boolean waiting) {
         Cursor cursor = waiting
                 ? Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR)
                 : Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR);
-
         setCursor(cursor);
     }
 }

@@ -1,13 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
-/**
- *
- * @author Ganesh Sharma
- */
 import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Font;
@@ -26,19 +16,13 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
-//import java.sql.*;
-
 public class LoginScreen extends JFrame {
-
     private JLabel lblUsername,  lblPasswd;
     public JTextField txtUser;
     private JPasswordField txtPasswd;
     private JButton btnLogin,btnCancel,btnSignup;
     private Connection conn=null;
-    //private Statement stat=null;
-    //private ResultSet resultSet=null;
     Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
-
     public LoginScreen() {
         super("System Login");
         this.getContentPane().setLayout(null);
@@ -52,9 +36,7 @@ public class LoginScreen extends JFrame {
         txtPasswd = new JPasswordField();
         btnLogin = new JButton("Login", new ImageIcon(ClassLoader.getSystemResource("images\\Login.png")));
         btnCancel = new JButton("Cancel", new ImageIcon(ClassLoader.getSystemResource("images\\Cancel.png")));
-        //btnSignup = new JButton("Signup", new ImageIcon(ClassLoader.getSystemResource("images\\Cancel.png")));
         btnSignup = new JButton(new ImageIcon(ClassLoader.getSystemResource("images\\Signup.png")));
-
         lblUsername.setBounds(40, 30, 100, 25);
         lblPasswd.setBounds(40, 65, 100, 25);
         txtUser.setBounds(150, 30, 160, 25);
@@ -62,7 +44,6 @@ public class LoginScreen extends JFrame {
         btnLogin.setBounds(130, 150, 100, 25);
         btnCancel.setBounds(240, 150, 100, 25);
         btnSignup.setBounds(20, 150, 100, 25);
-
         lblUsername.setFont(new Font("monospaced", Font.BOLD, 16));
         lblPasswd.setFont(new Font("monospaced", Font.BOLD, 16));
         txtUser.setFont(new Font("monospaced", Font.CENTER_BASELINE, 16));
@@ -74,14 +55,10 @@ public class LoginScreen extends JFrame {
         this.add(btnSignup);
         this.add(btnLogin);
         this.add(btnCancel);
-       // this.add(btnLogin);
-       // this.add(btnCancel);
-
         ButtonListener listener = new ButtonListener();
         btnSignup.addActionListener(listener);
         btnLogin.addActionListener(listener);
         btnCancel.addActionListener(listener);
-        
         try {
 			Class.forName("org.gjt.mm.mysql.Driver");
             conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/Library","root","nielit");
@@ -102,13 +79,11 @@ public class LoginScreen extends JFrame {
 		catch (Exception e) {
 			System.out.println("LoginScreen.java\n" + e.toString());
 		}
-        //con = DBConnection.getDBConnection();
         if (conn == null) {
             JOptionPane.showMessageDialog(null, "Error on establishing database connection", "Error", JOptionPane.ERROR_MESSAGE);
             this.dispose();
         }
-    }//constructor closed
-
+    }
     public void login() {
         String username = txtUser.getText();
         String password = new String(txtPasswd.getPassword());
@@ -132,11 +107,9 @@ public class LoginScreen extends JFrame {
             }
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(null, "Error on login operation", "Login Error", JOptionPane.ERROR_MESSAGE);
-        }//try catch closed
-    }//Login() closed
-
+        }
+    }
     private class ButtonListener implements ActionListener {
-
         public void actionPerformed(ActionEvent e) {
             if (e.getSource() == btnLogin) {
                 if (txtUser.getText() == null || txtUser.getText().equals("")) {
@@ -152,12 +125,11 @@ public class LoginScreen extends JFrame {
                 login();
             } else if (e.getSource() == btnCancel) {
                 System.exit(0);
-            }//if else closed
+            }
             else if(e.getSource()== btnSignup){
             dispose();
              EventQueue.invokeLater(new Main(new SignUp()));
-            //JOptionPane.showMessageDialog(null,"signup button pressed","singup window", JOptionPane.INFORMATION_MESSAGE);
             }
-        }//actionPerformed() closed
-    }//ButtonListner class closed
+        }
+    }
 }

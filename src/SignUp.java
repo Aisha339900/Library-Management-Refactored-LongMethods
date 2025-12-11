@@ -1,14 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
-/**
- *
- * @author Ganesh Sharma
- */
-
 import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Font;
@@ -27,17 +16,6 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
-
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
-/**
- *
- * @author Dell user
- */
 public class SignUp extends JFrame {
    private JLabel lblUsername, lblPasswd,lblConfirmPasswd;
     public JTextField txtUser;
@@ -48,9 +26,7 @@ public class SignUp extends JFrame {
     private static final String DATABASE_URL = "jdbc:mysql://localhost:3306/Library";
     private static final String USER_NAME="root";
     private static final String PASSWORD="nielit";
-    //private Statement stat=null;
-    //private ResultSet resultSet=null;
-    Dimension screen = Toolkit.getDefaultToolkit().getScreenSize(); 
+    Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
 public SignUp(){
 super("System Signup Window");
 this.getContentPane().setLayout(null);
@@ -66,7 +42,6 @@ this.getContentPane().setLayout(null);
         txtConfirmPasswd = new JPasswordField();
         btnSubmit = new JButton("Create");
         btnCancel = new JButton("Cancel");
-        
         lblUsername.setBounds(40, 30, 100, 25);
         lblPasswd.setBounds(40, 65, 100, 25);
         lblConfirmPasswd.setBounds(40, 100, 200, 25);
@@ -75,14 +50,12 @@ this.getContentPane().setLayout(null);
         txtConfirmPasswd.setBounds(230, 100, 190, 25);
         btnSubmit.setBounds(110, 160, 100, 25);
         btnCancel.setBounds(260, 160, 100, 25);
-        
         lblUsername.setFont(new Font("monospaced", Font.BOLD, 16));
         lblPasswd.setFont(new Font("monospaced", Font.BOLD, 16));
         lblConfirmPasswd.setFont(new Font("monospaced", Font.BOLD, 16));
         txtUser.setFont(new Font("monospaced", Font.CENTER_BASELINE, 16));
         txtPasswd.setFont(new Font("monospaced", Font.CENTER_BASELINE, 16));
         txtConfirmPasswd.setFont(new Font("monospaced", Font.CENTER_BASELINE, 16));
-        
         this.add(lblUsername);
         this.add(txtUser);
         this.add(lblPasswd);
@@ -91,26 +64,10 @@ this.getContentPane().setLayout(null);
         this.add(txtConfirmPasswd);
         this.add(btnSubmit);
         this.add(btnCancel);
-        
-        
          ButtonListener listener = new ButtonListener();
         btnSubmit.addActionListener(listener);
         btnCancel.addActionListener(listener);
-                
-        /*try {
-            
-            /*stmt.execute("SELECT * FROM Login");
-            ResultSet rst = stmt.getResultSet();
-            boolean datafound = rst.next();
-            if (datafound) {
-                btnSignup.setVisible(false);
-		}
-        }*/
-		
-        //con = DBConnection.getDBConnection();
-        
-    } //constructor closed 
-
+    }
     public void Sign() {
         String username = txtUser.getText();
         String password = new String(txtPasswd.getPassword());
@@ -135,15 +92,13 @@ this.getContentPane().setLayout(null);
 		}
          catch (Exception ex) {
             JOptionPane.showMessageDialog(null, "Error on Signup operation", "Signup Error", JOptionPane.ERROR_MESSAGE);
-        }//try catch closed
+        }
         if (conn == null) {
             JOptionPane.showMessageDialog(null, "Error on establishing database connection", "Error", JOptionPane.ERROR_MESSAGE);
             this.dispose();
         }
-    }//Sign() closed
-
+    }
     private class ButtonListener implements ActionListener {
-
         public void actionPerformed(ActionEvent e) {
             if (e.getSource() == btnSubmit) {
                 String password = new String(txtPasswd.getPassword());
@@ -173,7 +128,7 @@ this.getContentPane().setLayout(null);
                 Sign();
             } else if (e.getSource() == btnCancel) {
                 System.exit(0);
-            }//if else closed
-        }//actionPerformed() closed
+            }
+        }
     }
 }
