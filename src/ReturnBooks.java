@@ -2,226 +2,268 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.sql.*;
+
 public class ReturnBooks extends JInternalFrame implements ActionListener {
-    private JPanel northPanel = new JPanel();
-    private JLabel title = new JLabel("BOOK INFORMATION");
-    private JPanel centerPanel = new JPanel();
-    private JPanel informationPanel = new JPanel();
-    private JLabel[] informationLabel = new JLabel[2];
-    private String[] informationString = {" Write the Book ID:", " Write the Member ID:"};
-    private JTextField[] informationTextField = new JTextField[2];
-    private String[] data;
-    private JLabel lblFinePerDay = new JLabel(" Fine per Day");
-    private JTextField txtFinePerDay = new JTextField();
-    private JLabel lblTotalFineAmt = new JLabel(" Total fine amount");
-    private JTextField txtTotalFineAmt = new JTextField();
-    private JPanel returnButtonPanel = new JPanel();
-    private JButton returnButton = new JButton("Return");
-    private JPanel southPanel = new JPanel();
-    private JButton cancelButton = new JButton("Cancel");
+
+    /* ------------ UI Fields ------------ */
+    private final JTextField[] fields = {new JTextField(), new JTextField()};
+    private final JTextField txtFinePerDay = new JTextField();
+    private final JTextField txtTotalFineAmt = new JTextField();
+
+    private final JButton returnButton = new JButton("Return");
+    private final JButton cancelButton = new JButton("Cancel");
+
+    /* ------------ Model Objects ------------ */
     private Books book;
     private Members member;
     private Borrow borrow;
+    private String[] data;
+
     public ReturnBooks() {
         super("Return books", false, true, false, true);
         setFrameIcon(new ImageIcon(ClassLoader.getSystemResource("images/Import16.gif")));
-        Container cp = getContentPane();
-        northPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
-        title.setFont(new Font("Tahoma", Font.BOLD, 14));
-        northPanel.add(title);
-        cp.add("North", northPanel);
-        centerPanel.setLayout(new BorderLayout());
-        informationPanel.setLayout(new GridLayout(4, 2, 1, 1));
-        buildFormInputs();
-        buildFineSection();
-        buildButtons(cp);
+
+        buildNorth();
+        buildCenter();
+        buildSouth();
+
         returnButton.addActionListener(this);
         cancelButton.addActionListener(this);
+
         setVisible(true);
         pack();
     }
-    private void buildFormInputs() {
-        for (int i = 0; i < informationLabel.length; i++) {
-            informationPanel.add(informationLabel[i] = new JLabel(informationString[i]));
-            informationLabel[i].setFont(new Font("Tahoma", Font.BOLD, 11));
-            informationPanel.add(informationTextField[i] = new JTextField());
-            informationTextField[i].setFont(new Font("Tahoma", Font.PLAIN, 11));
-            informationTextField[i].addKeyListener(new keyListener());
+
+    /* ------------ Build UI ------------ */
+
+    private void buildNorth() {
+        JLabel t = new JLabel("BOOK INFORMATION");
+        t.setFont(new Font("Tahoma", Font.BOLD, 14));
+        JPanel n = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        n.add(t);
+        add("North", n);
+    }
+
+    private void buildCenter() {
+        JPanel form = new JPanel(new GridLayout(4, 2, 5, 5));
+        String[] lbl = {" Write the Book ID:", " Write the Member ID:"};
+
+        for (int i = 0; i < 2; i++) {
+            JLabel l = new JLabel(lbl[i]);
+            l.setFont(new Font("Tahoma", Font.BOLD, 11));
+
+            fields[i].setFont(new Font("Tahoma", Font.PLAIN, 11));
+            fields[i].addKeyListener(new DigitListener());
+
+            form.add(l);
+            form.add(fields[i]);
         }
-    }
-    private void buildFineSection() {
-        informationPanel.add(lblFinePerDay);
-        informationPanel.add(txtFinePerDay);
-        informationPanel.add(lblTotalFineAmt);
-        informationPanel.add(txtTotalFineAmt);
+
+        form.add(new JLabel(" Fine per Day"));
+        form.add(txtFinePerDay);
+
+        form.add(new JLabel(" Total fine amount"));
         txtTotalFineAmt.setEditable(false);
-        txtFinePerDay.addKeyListener(new keyListener());
-        centerPanel.add("Center", informationPanel);
-        centerPanel.setBorder(BorderFactory.createTitledBorder("Return a book:"));
+        form.add(txtTotalFineAmt);
+
+        txtFinePerDay.addKeyListener(new FineCalcListener());
+
+        JPanel center = new JPanel(new BorderLayout());
+        center.setBorder(BorderFactory.createTitledBorder("Return a book:"));
+        center.add(form, BorderLayout.CENTER);
+
+        JPanel btn = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        btn.add(returnButton);
+
+        center.add(btn, BorderLayout.SOUTH);
+        add("Center", center);
     }
-    private void buildButtons(Container cp) {
-        returnButtonPanel.setLayout(new FlowLayout(FlowLayout.RIGHT));
-        returnButtonPanel.add(returnButton);
-        returnButton.setFont(new Font("Tahoma", Font.BOLD, 11));
-        centerPanel.add("South", returnButtonPanel);
-        cp.add("Center", centerPanel);
-        southPanel.setLayout(new FlowLayout(FlowLayout.RIGHT));
+
+    private void buildSouth() {
+        JPanel s = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         cancelButton.setFont(new Font("Tahoma", Font.BOLD, 11));
-        southPanel.add(cancelButton);
-        southPanel.setBorder(BorderFactory.createEtchedBorder());
-        cp.add("South", southPanel);
+        s.add(cancelButton);
+        add("South", s);
     }
-    public boolean isCorrect() {
+
+    /* ------------ Validation ------------ */
+
+    private boolean isCorrect() {
         data = new String[2];
-        for (int i = 0; i < informationTextField.length; i++) {
-            if (informationTextField[i].getText().isEmpty()) {
-                return false;
-            }
-            data[i] = informationTextField[i].getText();
+        for (int i = 0; i < 2; i++) {
+            String v = fields[i].getText().trim();
+            if (v.isEmpty()) return false;
+            data[i] = v;
         }
         return true;
     }
-    public void clearTextField() {
-        for (JTextField tf : informationTextField) {
-            tf.setText(null);
-        }
-        txtFinePerDay.setText(null);
-        txtTotalFineAmt.setText(null);
+
+    private void clearInputs() {
+        fields[0].setText("");
+        fields[1].setText("");
+        txtFinePerDay.setText("");
+        txtTotalFineAmt.setText("");
     }
+
+    /* ------------ Button Actions ------------ */
+
     @Override
-    public void actionPerformed(ActionEvent ae) {
-        if (ae.getSource() == returnButton) {
-            processReturnButtonClick();
-        }
-        if (ae.getSource() == cancelButton) {
-            dispose();
-        }
+    public void actionPerformed(ActionEvent e) {
+        if (e.getSource() == returnButton) handleReturn();
+        else if (e.getSource() == cancelButton) dispose();
     }
-    private void processReturnButtonClick() {
+
+    private void handleReturn() {
         if (!isCorrect()) {
-            showWarning("Please, complete the information");
+            warn("Please, complete the information");
             return;
         }
-        Thread runner = new Thread(this::processReturnBook);
-        runner.start();
+        new Thread(this::processReturn).start();
     }
-    private void processReturnBook() {
-        initObjects();
+
+    /* ------------ Main Logic ------------ */
+
+    private void processReturn() {
+
+        initModels();
+
         if (!borrowRecordExists()) {
-            showWarning("The book is not borrowed");
-            clearTextField();
+            warn("The book is not borrowed");
+            clearInputs();
             return;
         }
+
         loadBookAndMember();
+
         int available = book.getNumberOfAvailbleBooks();
         int borrowed = book.getNumberOfBorrowedBooks() - 1;
-        int memberBooks = member.getNumberOfBooks();
-        if (memberBooks <= 0) {
-            showWarning("Invalid member book count");
+        int memberBooks = member.getNumberOfBooks() - 1;
+
+        if (memberBooks < 0) {
+            warn("Invalid member book count");
             return;
         }
-        updateRecords(available, borrowed, memberBooks);
+
+        updateRecords(available + 1, borrowed, memberBooks);
+        deleteBorrowEntry();
+
+        dispose();
     }
-    private void initObjects() {
+
+    private void initModels() {
         book = new Books();
         member = new Members();
         borrow = new Borrow();
     }
+
     private boolean borrowRecordExists() {
-        borrow.connection("SELECT * FROM Borrow WHERE BookID=" + data[0] + " AND MemberID=" + data[1]);
+        borrow.connection(
+                "SELECT * FROM Borrow WHERE BookID=" + data[0] +
+                " AND MemberID=" + data[1]);
+
         return borrow.getBookID() == Integer.parseInt(data[0]) &&
                borrow.getMemberID() == Integer.parseInt(data[1]);
     }
+
     private void loadBookAndMember() {
         book.connection("SELECT * FROM Books WHERE BookID = " + data[0]);
         member.connection("SELECT * FROM Members WHERE MemberID = " + data[1]);
     }
-    private void updateRecords(int available, int borrowed, int memberBooks) {
-        available += 1;
-        memberBooks -= 1;
-        updateBookInDB(available, borrowed);
-        updateMemberInDB(memberBooks);
-        deleteBorrowRecord();
-        dispose();
+
+    private void updateRecords(int newAvailable, int newBorrowed, int memberBookCount) {
+        String bookQuery =
+                "UPDATE Books SET NumberOfAvailbleBooks=" + newAvailable +
+                ", NumberOfBorrowedBooks=" + newBorrowed +
+                (newAvailable == 1 ? ", Availble=true" : "") +
+                " WHERE BookID=" + data[0];
+
+        book.update(bookQuery);
+
+        String memberQuery =
+                "UPDATE Members SET NumberOfBooks=" + memberBookCount +
+                " WHERE MemberID=" + data[1];
+
+        member.update(memberQuery);
     }
-    private void updateBookInDB(int available, int borrowed) {
-        String query = "UPDATE Books SET NumberOfAvailbleBooks =" + available +
-                ", NumberOfBorrowedBooks =" + borrowed;
-        if (available == 1) {
-            query += ", Availble = true";
-        }
-        query += " WHERE BookID =" + data[0];
-        book.update(query);
+
+    private void deleteBorrowEntry() {
+        borrow.update(
+                "DELETE FROM Borrow WHERE BookID=" + data[0] +
+                " AND MemberID=" + data[1]);
     }
-    private void updateMemberInDB(int memberBooks) {
-        member.update("UPDATE Members SET NumberOfBooks =" + memberBooks +
-                " WHERE MemberID =" + data[1]);
-    }
-    private void deleteBorrowRecord() {
-        borrow.update("DELETE FROM Borrow WHERE BookID =" + data[0] +
-                " AND MemberID =" + data[1]);
-    }
-    private void showWarning(String msg) {
-        JOptionPane.showMessageDialog(null, msg, "Warning", JOptionPane.WARNING_MESSAGE);
-    }
-    class keyListener extends KeyAdapter {
+
+    /* ------------ Fine Calculation Listener ------------ */
+
+    private class FineCalcListener extends KeyAdapter {
+
         @Override
-        public void keyTyped(KeyEvent e) {
-            char c = e.getKeyChar();
-            if (!Character.isDigit(c) && c != KeyEvent.VK_BACK_SPACE && c != KeyEvent.VK_ENTER) {
-                getToolkit().beep();
-                JOptionPane.showMessageDialog(null,
-                        "This Field Only Accepts Integer Numbers",
-                        "WARNING",
-                        JOptionPane.DEFAULT_OPTION);
-                e.consume();
-            }
-        }
-        @Override
-        public void keyPressed(KeyEvent k) {
-            if (isFineCalculationTrigger(k)) {
+        public void keyPressed(KeyEvent e) {
+            if (e.getKeyCode() == KeyEvent.VK_TAB ||
+                e.getKeyCode() == KeyEvent.VK_ENTER) {
+
                 calculateFine();
             }
         }
-        private boolean isFineCalculationTrigger(KeyEvent k) {
-            return k.getKeyCode() == KeyEvent.VK_TAB ||
-                   k.getKeyCode() == KeyEvent.VK_ENTER;
-        }
+
         private void calculateFine() {
             try {
                 int finePerDay = Integer.parseInt(txtFinePerDay.getText());
-                Date returnDate = fetchReturnDate();
-                if (returnDate == null) {
-                    showWarning("Member ID or Book ID not found");
+                java.sql.Date dueDate = fetchReturnDate();
+
+                if (dueDate == null) {
+                    warn("Member ID or Book ID not found");
                     return;
                 }
-                computeAndDisplayFine(finePerDay, returnDate);
+
+                long now = System.currentTimeMillis();
+                long diff = now - dueDate.getTime();
+
+                int daysLate = diff > 0 ? (int)(diff / (1000 * 60 * 60 * 24)) : 0;
+                txtTotalFineAmt.setText(String.valueOf(daysLate * finePerDay));
+
             } catch (Exception ex) {
-                showWarning("Error calculating fine");
+                warn("Error calculating fine");
             }
         }
-        private Date fetchReturnDate() throws Exception {
+
+        private java.sql.Date fetchReturnDate() throws Exception {
             Class.forName("org.gjt.mm.mysql.Driver");
-            Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/Library", "root", "nielit");
-            Statement st = con.createStatement();
-            int bookid = Integer.parseInt(informationTextField[0].getText());
-            int memid = Integer.parseInt(informationTextField[1].getText());
-            ResultSet rs = st.executeQuery(
-                    "SELECT DayOfReturn FROM Borrow WHERE MemberID=" + memid + " AND BookID=" + bookid);
-            if (rs.next()) {
-                return rs.getDate(1);
-            }
-            return null;
-        }
-        private void computeAndDisplayFine(int finePerDay, java.sql.Date returnDate) {
-            java.util.Date today = new java.util.Date();
-            if (today.after(returnDate)) {
-                long diff = today.getTime() - returnDate.getTime();
-                int daysLate = (int) (diff / (1000 * 60 * 60 * 24));
-                txtTotalFineAmt.setText(String.valueOf(finePerDay * daysLate));
-            } else {
-                txtTotalFineAmt.setText("0");
+            try (Connection con = DriverManager.getConnection(
+                    "jdbc:mysql://localhost:3306/Library", "root", "nielit");
+                 Statement st = con.createStatement()) {
+
+                ResultSet rs = st.executeQuery(
+                        "SELECT DayOfReturn FROM Borrow WHERE MemberID=" + data[1] +
+                        " AND BookID=" + data[0]);
+
+                return rs.next() ? rs.getDate(1) : null;
             }
         }
+    }
+
+    /* ------------ Digit Filter ------------ */
+
+    private static class DigitListener extends KeyAdapter {
+        @Override
+        public void keyTyped(KeyEvent e) {
+            char c = e.getKeyChar();
+            if (!Character.isDigit(c) &&
+                c != KeyEvent.VK_BACK_SPACE &&
+                c != KeyEvent.VK_ENTER &&
+                c != KeyEvent.VK_DELETE) {
+
+                Toolkit.getDefaultToolkit().beep();
+                JOptionPane.showMessageDialog(
+                        null,
+                        "This Field Only Accepts Integer Numbers",
+                        "WARNING",
+                        JOptionPane.WARNING_MESSAGE);
+                e.consume();
+            }
+        }
+    }
+
+    private void warn(String msg) {
+        JOptionPane.showMessageDialog(null, msg, "Warning", JOptionPane.WARNING_MESSAGE);
     }
 }
